@@ -1,0 +1,338 @@
+/* ======================= CSS CHO TAB TỔNG QUAN ======================= */
+
+/* Stats cards cho tab tổng quan */
+#statsOverview {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+#statsOverview .stat-card {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    flex: 1;
+    min-width: 200px;
+    border: 1px solid #f0f0f0;
+}
+
+#statsOverview .stat-card .label {
+    font-size: 13px;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+#statsOverview .stat-card .value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Chart container cho tab tổng quan */
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.chart-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.chart-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.chart-label {
+    width: 80px;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 14px;
+}
+
+.chart-bar-wrapper {
+    flex: 1;
+    background: #f0f0f0;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 40px;
+}
+
+.chart-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 20px;
+    transition: width 0.5s ease;
+}
+
+.chart-value {
+    min-width: 180px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+.value-money {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.value-quantity {
+    color: #666;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+/* Màu sắc cho biểu đồ ngành hàng */
+.category-Chân-Gà .chart-bar {
+    background: linear-gradient(90deg, #ff6b6b, #ee5a5a);
+}
+
+.category-Bim-Quẩy .chart-bar {
+    background: linear-gradient(90deg, #4ecdc4, #45b7aa);
+}
+
+.category-Hàng-Ướt .chart-bar {
+    background: linear-gradient(90deg, #96ceb4, #7fba9a);
+}
+
+.category-Cá-Cơm .chart-bar {
+    background: linear-gradient(90deg, #ffcc5c, #ffb347);
+}
+
+.category-Khác .chart-bar {
+    background: linear-gradient(90deg, #9b59b6, #8e44ad);
+}
+
+/* Tooltip styles cho tab tổng quan */
+.tooltip-trigger {
+    cursor: pointer;
+    position: relative;
+}
+
+.custom-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    z-index: 1000;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 280px;
+    transition: opacity 0.2s ease;
+    opacity: 0;
+}
+
+.custom-tooltip .tooltip-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+    color: #ffd966;
+}
+
+.custom-tooltip .tooltip-table {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.custom-tooltip .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-weight: 600;
+    color: #aaa;
+    font-size: 11px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 5px;
+}
+
+.custom-tooltip .tooltip-header span:first-child {
+    flex: 2;
+}
+
+.custom-tooltip .tooltip-header span:nth-child(2) {
+    flex: 1;
+    text-align: right;
+}
+
+.custom-tooltip .tooltip-header span:last-child {
+    flex: 1;
+    text-align: right;
+}
+
+.custom-tooltip .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 12px;
+}
+
+.custom-tooltip .tooltip-row span:first-child {
+    flex: 2;
+    font-weight: 500;
+}
+
+.custom-tooltip .tooltip-row span:nth-child(2) {
+    flex: 1;
+    text-align: right;
+}
+
+.custom-tooltip .tooltip-row span:last-child {
+    flex: 1;
+    text-align: right;
+    color: #4caf50;
+}
+
+.custom-tooltip .category-name {
+    color: #ffd966;
+}
+
+/* Product tooltip cho tab tổng quan */
+.custom-tooltip .product-tooltip {
+    min-width: 500px;
+    max-width: 600px;
+}
+
+.custom-tooltip .product-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-tooltip .product-row:last-child {
+    border-bottom: none;
+}
+
+.custom-tooltip .product-code {
+    width: 80px;
+    font-family: monospace;
+    color: #ffd966;
+}
+
+.custom-tooltip .product-name {
+    flex: 2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.custom-tooltip .tooltip-header span:first-child {
+    width: 80px;
+}
+
+.custom-tooltip .tooltip-header span:nth-child(2) {
+    flex: 2;
+}
+
+.custom-tooltip .tooltip-header span:nth-child(3),
+.custom-tooltip .tooltip-header span:nth-child(4) {
+    width: 100px;
+    text-align: right;
+}
+
+.custom-tooltip .product-row span:nth-child(3),
+.custom-tooltip .product-row span:nth-child(4) {
+    width: 100px;
+    text-align: right;
+}
+
+.custom-tooltip .tooltip-more {
+    text-align: center;
+    padding: 8px;
+    color: #ffd966;
+    font-size: 11px;
+    font-style: italic;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 5px;
+}
+
+/* Animation cho tooltip */
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.custom-tooltip {
+    animation: tooltipFadeIn 0.2s ease;
+}
+
+/* Responsive cho tab tổng quan */
+@media (max-width: 768px) {
+    #statsOverview .stat-card .value {
+        font-size: 20px;
+    }
+    
+    .chart-label {
+        width: 60px;
+        font-size: 12px;
+    }
+    
+    .chart-value {
+        min-width: 140px;
+        font-size: 11px;
+    }
+    
+    .value-money, .value-quantity {
+        font-size: 11px;
+    }
+    
+    .custom-tooltip .product-tooltip {
+        min-width: 320px;
+        max-width: 400px;
+    }
+    
+    .custom-tooltip .product-code {
+        width: 60px;
+    }
+    
+    .custom-tooltip .product-row span:nth-child(3),
+    .custom-tooltip .product-row span:nth-child(4) {
+        width: 70px;
+    }
+}

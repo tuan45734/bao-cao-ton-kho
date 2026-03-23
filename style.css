@@ -1,55 +1,215 @@
-/* Custom styles */
-.inventory-card {
-    transition: all 0.2s ease;
+/* ======================= RESET & BASE ======================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.inventory-card:hover {
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+/* ======================= HEADER ======================= */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.header p {
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.unit-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    margin-left: 8px;
+}
+
+/* ======================= CONTROLS ======================= */
+.controls {
+    padding: 20px 30px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.control-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.control-group input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.control-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-.product-item {
-    border-left: 3px solid transparent;
-    transition: border-color 0.2s ease;
+button:active {
+    transform: translateY(0);
 }
 
-.product-item:hover {
-    border-left-color: #4f46e5;
-    background-color: #f8fafc;
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
-/* Scrollbar tùy chỉnh */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+/* ======================= LOADING ======================= */
+.loading {
+    text-align: center;
+    padding: 50px;
+    display: none;
 }
 
-::-webkit-scrollbar-track {
-    background: #f1f5f9;
+.loading.active {
+    display: block;
+}
+
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.progress {
+    margin: 20px auto;
+    width: 80%;
+    max-width: 500px;
+    background: #f0f0f0;
     border-radius: 10px;
+    overflow: hidden;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
+.progress-bar {
+    width: 0%;
+    height: 30px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+/* ======================= TABS ======================= */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+    padding: 0 30px;
 }
 
-/* Animation cho loading */
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+.tab-btn {
+    background: none;
+    color: #666;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
 }
 
-.loading-pulse {
-    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.tab-btn:hover {
+    color: #667eea;
+    background: none;
+    transform: none;
+    box-shadow: none;
 }
 
-/* Format số */
-.money-value {
-    font-feature-settings: "tnum";
-    font-variant-numeric: tabular-nums;
+.tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px 30px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ======================= ERROR ======================= */
+.error {
+    background: #fee;
+    color: #c33;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 30px;
+    border-left: 4px solid #c33;
+    display: none;
 }
