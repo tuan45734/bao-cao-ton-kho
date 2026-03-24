@@ -41,26 +41,28 @@ const UnitConverter = {
         const rate = CONFIG.CONVERSION_RATES[maSp];
         return rate ? quantity / rate : quantity;
     },
-    convertAmountToBox: (maSp, amount, unit) => {
-        if (unit === 'Thùng') return amount;
-        const rate = CONFIG.CONVERSION_RATES[maSp];
-        return rate ? amount / rate : amount;
-    },
     needsConversion: (unit) => unit !== 'Thùng'
 };
 
 // ======================= QUẢN LÝ TỒN KHO =======================
 const InventoryManager = {
     map: new Map(),
+    importMap: new Map(),
+    exportMap: new Map(),
+    importDetailMap: new Map(),
+    exportDetailMap: new Map(),
+    nppImportDetailMap: new Map(),
     
     getKey: (npp, ma_sp) => `${npp}|${ma_sp}`,
     
     update: function(npp, ma_sp, ten_sp, so_luong, thanh_tien) {
         if (CONFIG.isExcludedProduct(ma_sp)) return;
         
-        const key = this.getKey(npp, ma_sp);
+        const normalizedNPP = normalizeNPP(npp);
+        
+        const key = this.getKey(normalizedNPP, ma_sp);
         if (!this.map.has(key)) {
-            this.map.set(key, { npp, ma_sp, ten_sp: ten_sp || '', so_luong: 0, thanh_tien: 0 });
+            this.map.set(key, { npp: normalizedNPP, ma_sp, ten_sp: ten_sp || '', so_luong: 0, thanh_tien: 0 });
         }
         const item = this.map.get(key);
         item.so_luong += so_luong;
@@ -68,23 +70,117 @@ const InventoryManager = {
         if (ten_sp && !item.ten_sp) item.ten_sp = ten_sp;
     },
     
+    addImport: function(npp, ma_sp, ten_sp, so_luong, thanh_tien) {
+        if (CONFIG.isExcludedProduct(ma_sp)) return;
+        if (CONFIG.isExcludedWarehouse(npp)) return;
+        
+        const normalizedNPP = normalizeNPP(npp);
+        const region = getRegionByNPP(normalizedNPP);
+        if (!region) return;
+        
+        const category = Overview.getNganhHang(ten_sp);
+        
+        if (!this.importMap.has(region)) {
+            this.importMap.set(region, 0);
+        }
+        this.importMap.set(region, this.importMap.get(region) + thanh_tien);
+        
+        const key = `${region}|${category}`;
+        if (!this.importDetailMap.has(key)) {
+            this.importDetailMap.set(key, { quantity: 0, value: 0, products: [] });
+        }
+        const detail = this.importDetailMap.get(key);
+        detail.quantity += so_luong;
+        detail.value += thanh_tien;
+        detail.products.push({ ma_sp, ten_sp, so_luong, thanh_tien, category, npp: normalizedNPP });
+        this.importDetailMap.set(key, detail);
+        
+        const nppKey = `${normalizedNPP}|${category}`;
+        if (!this.nppImportDetailMap.has(nppKey)) {
+            this.nppImportDetailMap.set(nppKey, { quantity: 0, value: 0, products: [], npp: normalizedNPP, category });
+        }
+        const nppDetail = this.nppImportDetailMap.get(nppKey);
+        nppDetail.quantity += so_luong;
+        nppDetail.value += thanh_tien;
+        nppDetail.products.push({ ma_sp, ten_sp, so_luong, thanh_tien });
+        this.nppImportDetailMap.set(nppKey, nppDetail);
+    },
+    
+    addExport: function(npp, ma_sp, ten_sp, so_luong, thanh_tien) {
+        if (CONFIG.isExcludedProduct(ma_sp)) return;
+        if (CONFIG.isExcludedWarehouse(npp)) return;
+        
+        const normalizedNPP = normalizeNPP(npp);
+        const region = getRegionByNPP(normalizedNPP);
+        if (!region) return;
+        
+        const category = Overview.getNganhHang(ten_sp);
+        
+        if (!this.exportMap.has(region)) {
+            this.exportMap.set(region, 0);
+        }
+        this.exportMap.set(region, this.exportMap.get(region) + thanh_tien);
+        
+        const key = `${region}|${category}`;
+        if (!this.exportDetailMap.has(key)) {
+            this.exportDetailMap.set(key, { quantity: 0, value: 0, products: [] });
+        }
+        const detail = this.exportDetailMap.get(key);
+        detail.quantity += so_luong;
+        detail.value += thanh_tien;
+        detail.products.push({ ma_sp, ten_sp, so_luong, thanh_tien, category, npp: normalizedNPP });
+        this.exportDetailMap.set(key, detail);
+    },
+    
+    getTopNPPByCategory: function(categoryName, limit = 5) {
+        if (!this.nppImportDetailMap) return [];
+        
+        const nppData = new Map();
+        
+        for (const [key, detail] of this.nppImportDetailMap) {
+            const [npp, category] = key.split('|');
+            if (category === categoryName) {
+                if (!nppData.has(npp)) {
+                    nppData.set(npp, { value: 0, quantity: 0 });
+                }
+                const current = nppData.get(npp);
+                current.value += detail.value;
+                current.quantity += detail.quantity;
+                nppData.set(npp, current);
+            }
+        }
+        
+        return Array.from(nppData.entries())
+            .map(([npp, data]) => ({ npp, ...data }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, limit);
+    },
+    
     loadInitial: function() {
         for (const item of OPENING_STOCK_DATA) {
-            let sl = item.so_luong, tt = item.thanh_tien;
+            let sl = item.so_luong;
+            let tt = calculateThanhTien(item.ma_sp, sl);
             this.update(item.npp, item.ma_sp, item.ten_sp || '', sl, tt);
         }
-        console.log('✅ Đã tải tồn đầu kỳ');
     },
     
     clear: function() {
         this.map.clear();
+        this.importMap.clear();
+        this.exportMap.clear();
+        this.importDetailMap.clear();
+        this.exportDetailMap.clear();
+        this.nppImportDetailMap.clear();
     },
     
     getSummary: function() {
         const items = [];
+        const uniqueNPP = new Set();
+        
         for (const [_, item] of this.map) {
             if (Math.abs(item.so_luong) > 0.001 && !CONFIG.isExcludedWarehouse(item.npp)) {
                 items.push(item);
+                uniqueNPP.add(item.npp);
             }
         }
         
@@ -94,7 +190,6 @@ const InventoryManager = {
         const regionProducts = {};
         
         for (const item of items) {
-            // Tổng theo NPP
             if (!nppSummary[item.npp]) {
                 nppSummary[item.npp] = { total_quantity: 0, total_value: 0, products: [] };
             }
@@ -102,7 +197,6 @@ const InventoryManager = {
             nppSummary[item.npp].total_value += item.thanh_tien;
             nppSummary[item.npp].products.push(item);
             
-            // Tổng theo khu vực
             const region = getRegionByNPP(item.npp);
             if (region) {
                 if (!regionSummary[region]) regionSummary[region] = 0;
@@ -122,6 +216,7 @@ const InventoryManager = {
             regionSummary,
             regionValueSummary,
             regionProducts,
+            totalNPP: uniqueNPP.size,
             totalQuantity: items.reduce((s, i) => s + i.so_luong, 0),
             totalValue: items.reduce((s, i) => s + i.thanh_tien, 0)
         };
@@ -175,25 +270,32 @@ const API = {
                 
                 const unit = sp.dvt || sp.ma_dvt || 'Gói';
                 let sl = parseFloat(sp.so_luong) || 0;
-                let tt = parseFloat(sp.thanh_tien) || 0;
                 if (sl === 0) continue;
                 
                 if (UnitConverter.needsConversion(unit)) {
                     sl = UnitConverter.convertToBox(sp.ma_sp, sl, unit);
-                    tt = UnitConverter.convertAmountToBox(sp.ma_sp, tt, unit);
                 }
+                
+                const tt = calculateThanhTien(sp.ma_sp, sl);
                 
                 if (loai_xuat_nhap === 'Xuất kho' && xuat_tu) {
                     InventoryManager.update(xuat_tu, sp.ma_sp, sp.ten_sp, -sl, -tt);
+                    InventoryManager.addExport(xuat_tu, sp.ma_sp, sp.ten_sp, sl, tt);
                 } else if (loai_xuat_nhap === 'Nhập kho' && nhap_vao) {
                     InventoryManager.update(nhap_vao, sp.ma_sp, sp.ten_sp, sl, tt);
+                    InventoryManager.addImport(nhap_vao, sp.ma_sp, sp.ten_sp, sl, tt);
                 } else if (loai_xuat_nhap === 'Chuyển kho') {
-                    if (xuat_tu) InventoryManager.update(xuat_tu, sp.ma_sp, sp.ten_sp, -sl, -tt);
-                    if (nhap_vao) InventoryManager.update(nhap_vao, sp.ma_sp, sp.ten_sp, sl, tt);
+                    if (xuat_tu) {
+                        InventoryManager.update(xuat_tu, sp.ma_sp, sp.ten_sp, -sl, -tt);
+                        InventoryManager.addExport(xuat_tu, sp.ma_sp, sp.ten_sp, sl, tt);
+                    }
+                    if (nhap_vao) {
+                        InventoryManager.update(nhap_vao, sp.ma_sp, sp.ten_sp, sl, tt);
+                        InventoryManager.addImport(nhap_vao, sp.ma_sp, sp.ten_sp, sl, tt);
+                    }
                 }
             }
         }
-        console.log('✅ Đã xử lý giao dịch');
     }
 };
 
@@ -247,10 +349,13 @@ const UI = {
     },
     
     displayResults: function(summary) {
-        Overview.update(summary);
-        Detail.update(summary);
-        this.switchTab('overview');
-    },
+    const topChickenNPP = InventoryManager.getTopNPPByCategory('Chân Gà', 5);
+    const topBimQuayNPP = InventoryManager.getTopNPPByCategory('Bim Quẩy', 5);
+    
+    Overview.update(summary, topChickenNPP, topBimQuayNPP);
+    Detail.update(summary.nppSummary);
+    this.switchTab('overview');
+},
     
     hideResults: function() {
         Overview.clear();
@@ -313,7 +418,7 @@ async function fetchAndCalculate() {
     }
 }
 
-// Khởi tạo khi trang load xong
+// Khởi tạo
 document.addEventListener('DOMContentLoaded', function() {
     UI.init();
     UI.elements.fetchBtn.onclick = fetchAndCalculate;

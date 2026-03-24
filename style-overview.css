@@ -1,6 +1,4 @@
-/* ======================= CSS CHO TAB TỔNG QUAN ======================= */
-
-/* Stats cards cho tab tổng quan */
+/* Stats cards */
 #statsOverview {
     display: flex;
     gap: 30px;
@@ -32,7 +30,106 @@
     color: #333;
 }
 
-/* Chart container cho tab tổng quan */
+/* Top Import Cards */
+.top-import-cards-container {
+    margin-bottom: 20px;
+}
+
+.top-import-cards {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.top-import-card {
+    flex: 1;
+    min-width: 300px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+}
+
+.top-import-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.top-import-card .card-content {
+    padding: 15px 20px;
+}
+
+.npp-rank-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    padding: 8px;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.npp-rank-item:hover {
+    background: #f8f9fa;
+}
+
+.rank-number {
+    width: 32px;
+    height: 32px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.npp-info {
+    flex: 1;
+}
+
+.npp-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.npp-value {
+    font-size: 14px;
+    color: #28a745;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.npp-quantity {
+    font-size: 12px;
+    color: #666;
+    margin-left: 8px;
+    display: inline-block;
+}
+
+.progress-bar-rank {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+/* Chart containers */
 .chart-container {
     background: white;
     border-radius: 12px;
@@ -65,10 +162,13 @@
 }
 
 .chart-label {
-    width: 80px;
+    width: 180px;
     font-weight: 600;
     color: #667eea;
-    font-size: 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .chart-bar-wrapper {
@@ -93,6 +193,10 @@
     transition: width 0.5s ease;
 }
 
+.chart-bar-bottom {
+    background: linear-gradient(90deg, #fd7e14, #ffc107) !important;
+}
+
 .chart-value {
     min-width: 180px;
     text-align: right;
@@ -113,7 +217,7 @@
     margin-left: 5px;
 }
 
-/* Màu sắc cho biểu đồ ngành hàng */
+/* Category chart colors */
 .category-Chân-Gà .chart-bar {
     background: linear-gradient(90deg, #ff6b6b, #ee5a5a);
 }
@@ -134,7 +238,14 @@
     background: linear-gradient(90deg, #9b59b6, #8e44ad);
 }
 
-/* Tooltip styles cho tab tổng quan */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 14px;
+}
+
+/* Tooltip */
 .tooltip-trigger {
     cursor: pointer;
     position: relative;
@@ -164,6 +275,14 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     font-size: 14px;
     color: #ffd966;
+}
+
+.custom-tooltip .tooltip-subtitle {
+    font-size: 12px;
+    color: #ffd966;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .custom-tooltip .tooltip-table {
@@ -224,10 +343,31 @@
     color: #ffd966;
 }
 
-/* Product tooltip cho tab tổng quan */
+/* Product tooltip - hiển thị tất cả sản phẩm */
 .custom-tooltip .product-tooltip {
     min-width: 500px;
-    max-width: 600px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Tùy chỉnh scrollbar cho tooltip */
+.custom-tooltip .product-tooltip::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-tooltip .product-tooltip::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.custom-tooltip .product-tooltip::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.custom-tooltip .product-tooltip::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .custom-tooltip .product-row {
@@ -276,17 +416,84 @@
     text-align: right;
 }
 
+/* Xóa phần tooltip-more */
 .custom-tooltip .tooltip-more {
-    text-align: center;
-    padding: 8px;
-    color: #ffd966;
-    font-size: 11px;
-    font-style: italic;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    margin-top: 5px;
+    display: none;
 }
 
-/* Animation cho tooltip */
+/* Tooltip category styles (cho detail) */
+.custom-tooltip .tooltip-category {
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+}
+
+.custom-tooltip .tooltip-category:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.custom-tooltip .tooltip-category-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.custom-tooltip .tooltip-category-header .category-name {
+    font-weight: bold;
+    color: #ffd966;
+    font-size: 13px;
+}
+
+.custom-tooltip .tooltip-category-header .category-total {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.custom-tooltip .tooltip-category-products {
+    margin-left: 10px;
+}
+
+.custom-tooltip .tooltip-category-products .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 10px;
+    color: #888;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.custom-tooltip .tooltip-category-products .tooltip-header span:first-child {
+    width: 70px;
+}
+
+.custom-tooltip .tooltip-category-products .tooltip-header span:nth-child(2) {
+    flex: 2;
+}
+
+.custom-tooltip .tooltip-category-products .tooltip-header span:nth-child(3),
+.custom-tooltip .tooltip-category-products .tooltip-header span:nth-child(4) {
+    width: 90px;
+    text-align: right;
+}
+
+.custom-tooltip .tooltip-category-products .product-row span:first-child {
+    width: 70px;
+}
+
+.custom-tooltip .tooltip-category-products .product-row span:nth-child(2) {
+    flex: 2;
+}
+
+.custom-tooltip .tooltip-category-products .product-row span:nth-child(3),
+.custom-tooltip .tooltip-category-products .product-row span:nth-child(4) {
+    width: 90px;
+    text-align: right;
+}
+
 @keyframes tooltipFadeIn {
     from {
         opacity: 0;
@@ -302,15 +509,10 @@
     animation: tooltipFadeIn 0.2s ease;
 }
 
-/* Responsive cho tab tổng quan */
 @media (max-width: 768px) {
-    #statsOverview .stat-card .value {
-        font-size: 20px;
-    }
-    
     .chart-label {
-        width: 60px;
-        font-size: 12px;
+        width: 120px;
+        font-size: 11px;
     }
     
     .chart-value {
@@ -327,12 +529,17 @@
         max-width: 400px;
     }
     
-    .custom-tooltip .product-code {
-        width: 60px;
+    .top-import-cards {
+        flex-direction: column;
     }
     
-    .custom-tooltip .product-row span:nth-child(3),
-    .custom-tooltip .product-row span:nth-child(4) {
-        width: 70px;
+    .npp-rank-item {
+        gap: 8px;
+    }
+    
+    .rank-number {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
     }
 }

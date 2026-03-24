@@ -1,4 +1,35 @@
-// ======================= DỮ LIỆU TỒN ĐẦU KỲ =======================
+const DON_GIA = {
+    "HH00015": 842000,
+    "HH00019": 766000,
+    "HH00029": 1387000,
+    "HH00033": 1387000,
+    "HH00055": 432000,
+    "HH00056": 432000,
+    "HH00057": 432000,
+    "HH00058": 432000,
+    "HH00059": 432000,
+    "HH00062": 432000,
+    "HH00063": 432000,
+    "HH00065": 432000,
+    "HH00067": 432000,
+    "HH00069": 432000,
+    "HH00071": 432000,
+    "HH00072": 432000,
+    "HH00073": 432000,
+    "HH00074": 432000,
+    "HH00075": 432000,
+    "HH00077": 432000,
+    "HH00078": 432000,
+    "HH00079": 432000,
+    "HH00080": 432000,
+    "HH00081": 432000,
+    "HH00082": 432000,
+    "HH00083": 766000,
+    "HH00099": 690000,
+    "HH00100": 910000,
+    "HH00101": 432000,
+    "HH00105": 840000
+};
 const OPENING_STOCK_DATA = [
  {
    "npp": "NPP Anh Minh HT",
@@ -13025,6 +13056,21 @@ const OPENING_STOCK_DATA = [
    "thanh_tien": 0
  }
 ];
+function calculateThanhTien(ma_sp, so_luong) {
+    const donGia = DON_GIA[ma_sp];
+    if (donGia) {
+        return so_luong * donGia;
+    }
+    return 0;
+}
+
+// ======================= GỘP NPP THÀNH LỤA VÀ NPP CHỊ LỤA =======================
+function normalizeNPP(nppName) {
+    if (nppName === 'NPP Chị Lụa') {
+        return 'NPP Thành Lụa';
+    }
+    return nppName;
+}
 
 // ======================= PHÂN LOẠI NPP THEO KHU VỰC =======================
 const NPP_BY_REGION = {
@@ -13037,9 +13083,9 @@ const NPP_BY_REGION = {
     'KV3': ['NPP Bảo Cường', 'NPP Hikoji', 'NPP Long Hải', 'NPP Tân Hoa', 'NPP Tây Đô', 
             'NPP Thắng Lợi', 'NPP Thành Hân', 'NPP Tiến Thịnh'],
     'KV4': ['NPP Ánh Thu', 'NPP Đức Oanh', 'NPP Dương Minh', 'NPP Dũng Béo', 'NPP Hưng Thịnh', 
-            'NPP Ngọc Phúc', 'NPP Nguyễn Đình Hân', 'NPP Tân Thuý', 'NPP Thăng Hương', 
-            'NPP Thảo Thắng', 'NPP Tùng Phương'],
-    'KV5': ['NPP Anh Đức', 'NPP Hải Hằng', 'NPP Hiền Cường', 'NPP Hoàng Minh', 'NPP Oanh Định', 
+            'NPP Ngọc Phúc', 'NPP Nguyễn Đình Hân', 'NPP Tân Thúy', 'NPP Thăng Hương', 
+            'NPP Thảo Thắng', 'NPP Văn Hoàn'],
+    'KV5': ['NPP Anh Đức 1', 'NPP Hải Hằng', 'NPP Hiên Cường', 'NPP Hoàng Minh', 'NPP Oanh Định', 
             'NPP Sơn Lâm', 'NPP Thái Hoà', 'NPP Thảo Xuân', 'NPP Tiên Lan', 'NPP Tuấn Vân', 
             'NPP Vũ Đức Nam'],
     'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 
@@ -13047,7 +13093,6 @@ const NPP_BY_REGION = {
             'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng']
 };
 
-// Hàm lấy khu vực của NPP
 function getRegionByNPP(nppName) {
     for (const [region, npps] of Object.entries(NPP_BY_REGION)) {
         if (npps.includes(nppName)) {

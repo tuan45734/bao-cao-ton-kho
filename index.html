@@ -36,23 +36,43 @@
             </div>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab-btn active" id="btnOverview">📈 Tổng quan</button>
             <button class="tab-btn" id="btnDetail">📋 Chi tiết</button>
         </div>
 
-        <!-- Tab Tổng quan -->
         <div id="tabOverview" class="tab-content active">
             <div id="statsOverview" class="stats"></div>
             <div id="chartContainer"></div>
             <div id="categoryChartContainer"></div>
+            <div id="topNPPChartContainer"></div>
+            <div id="bottomNPPChartContainer"></div>
+            <div id="topImportCardsContainer" class="top-import-cards-container"></div>
         </div>
 
-        <!-- Tab Chi tiết -->
         <div id="tabDetail" class="tab-content">
-            <div id="statsDetail" class="stats"></div>
-            <div id="resultsDetail"></div>
+            <div class="detail-filters">
+                <div class="filter-group">
+                    <label>Chọn khu vực:</label>
+                    <select id="regionSelect">
+                        <option value="">-- Tất cả khu vực --</option>
+                        <option value="KV1">KV1</option>
+                        <option value="KV2">KV2</option>
+                        <option value="KV3">KV3</option>
+                        <option value="KV4">KV4</option>
+                        <option value="KV5">KV5</option>
+                        <option value="KV6">KV6</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Chọn NPP:</label>
+                    <select id="nppSelect" disabled>
+                        <option value="">-- Chọn khu vực trước --</option>
+                    </select>
+                </div>
+            </div>
+            <div id="detailChartContainer" class="detail-chart-container"></div>
+            <div id="detailCategoryContainer" class="detail-category-container"></div>
         </div>
 
         <div id="error" class="error"></div>

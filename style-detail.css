@@ -1,94 +1,82 @@
 /* ======================= CSS CHO TAB CHI TIẾT ======================= */
 
-/* Stats cards cho tab chi tiết */
-#statsDetail {
+.detail-filters {
     display: flex;
     gap: 30px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-
-#statsDetail .stat-card {
-    background: white;
-    padding: 20px 30px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    flex: 1;
-    min-width: 200px;
-    border: 1px solid #f0f0f0;
+    flex-wrap: wrap;
 }
 
-#statsDetail .stat-card .label {
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.filter-group label {
     font-size: 13px;
-    color: #999;
+    font-weight: 600;
+    color: #666;
     text-transform: uppercase;
-    margin-bottom: 8px;
     letter-spacing: 0.5px;
 }
 
-#statsDetail .stat-card .value {
-    font-size: 28px;
-    font-weight: bold;
-    color: #333;
-}
-
-/* Table styles cho tab chi tiết */
-.results {
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-}
-
-th {
-    background: #f8f9fa;
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    color: #666;
-    border-bottom: 2px solid #e0e0e0;
-    position: sticky;
-    top: 0;
+.filter-group select {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
     background: white;
+    cursor: pointer;
+    transition: all 0.3s;
 }
 
-td {
-    padding: 12px;
-    border-bottom: 1px solid #e0e0e0;
+.filter-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-tr:hover {
+.filter-group select:disabled {
+    background: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.detail-chart-container {
+    margin-bottom: 30px;
+}
+
+.detail-category-container {
+    margin-top: 20px;
+}
+
+.detail-chart-container .chart-container,
+.detail-category-container .chart-container {
+    margin-top: 0;
+}
+
+/* Chart bar cho detail */
+.detail-chart-container .chart-bar-item {
+    cursor: pointer;
+}
+
+.detail-chart-container .chart-bar-item:hover {
     background: #f8f9fa;
+    border-radius: 8px;
 }
 
-td:first-child {
-    text-align: center;
-}
-
-.npp-name {
-    font-weight: 600;
-    color: #667eea;
-}
-
-.total-money {
-    color: #28a745;
-    font-weight: 600;
-}
-
-/* Responsive cho tab chi tiết */
+/* Responsive */
 @media (max-width: 768px) {
-    #statsDetail .stat-card .value {
-        font-size: 20px;
+    .detail-filters {
+        flex-direction: column;
+        gap: 15px;
     }
     
-    table {
-        font-size: 11px;
-    }
-    
-    th, td {
-        padding: 8px;
+    .filter-group {
+        min-width: 100%;
     }
 }
