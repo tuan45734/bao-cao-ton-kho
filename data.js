@@ -2574,6 +2574,15 @@ const OPENING_STOCK_DATA = [
    "ma_dvt": "Thùng",
    "so_luong": 26.87,
    "thanh_tien": 11606400
+ }
+ ,
+ {
+   "npp": "NPP Hoàng Minh",
+   "ma_sp": "	HH00105",
+   "ten_sp": "Chân gà có xương bà Tuyết X2 60g (60gram*100 gói/thùng)",
+   "ma_dvt": "Thùng",
+   "so_luong": 0,
+   "thanh_tien": 0
  },
  {
    "npp": "NPP Hoàng Minh",
@@ -6686,6 +6695,14 @@ const OPENING_STOCK_DATA = [
    "ma_dvt": "Thùng",
    "so_luong": 15,
    "thanh_tien": 6480000
+ },
+ {
+   "npp": "NPP Nhung Tùng 2",
+   "ma_sp": "	HH00105",
+   "ten_sp": "Chân gà có xương bà Tuyết X2 60g (60gram*100 gói/thùng)",
+   "ma_dvt": "Thùng",
+   "so_luong": 0,
+   "thanh_tien": 0
  },
  {
    "npp": "NPP Nhung Tùng 2",

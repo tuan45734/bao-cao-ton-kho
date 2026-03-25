@@ -123,76 +123,82 @@ const Overview = {
         return html;
     },
     
-    renderTopImportCards: function(topChickenNPP, topBimQuayNPP) {
-        if (!this.topImportCardsElement) return;
-        
-        let html = `
-            <div class="top-import-cards">
-                <div class="top-import-card">
-                    <div class="card-header">🍗 NPP nhập Chân Gà nhiều nhất</div>
-                    <div class="card-content">
-        `;
-        
-        if (!topChickenNPP || topChickenNPP.length === 0) {
-            html += `<div class="empty-state">Không có dữ liệu</div>`;
-        } else {
-            for (let i = 0; i < Math.min(topChickenNPP.length, 5); i++) {
-                const npp = topChickenNPP[i];
-                const percent = i === 0 ? 100 : (npp.value / topChickenNPP[0].value) * 100;
-                html += `
-                    <div class="npp-rank-item">
-                        <div class="rank-number">${i + 1}</div>
-                        <div class="npp-info">
-                            <div class="npp-name">${npp.npp}</div>
-                            <div class="npp-value">${this.formatCurrency(npp.value)} VNĐ</div>
-                            <div class="npp-quantity">(${this.formatNumber(npp.quantity)} Thùng)</div>
-                            <div class="progress-bar-rank">
-                                <div class="progress-fill" style="width: ${percent}%"></div>
-                            </div>
+   renderTopImportCards: function(topChickenNPP, topBimQuayNPP) {
+    if (!this.topImportCardsElement) return;
+    
+    let html = `
+        <div class="top-import-cards">
+            <div class="top-import-card">
+                <div class="card-header">🍗 NPP tồn Chân Gà nhiều nhất</div>
+                <div class="card-content">
+    `;
+    
+    if (!topChickenNPP || topChickenNPP.length === 0) {
+        html += `<div class="empty-state">Không có dữ liệu</div>`;
+    } else {
+        for (let i = 0; i < Math.min(topChickenNPP.length, 5); i++) {
+            const npp = topChickenNPP[i];
+            const percent = i === 0 ? 100 : (npp.value / topChickenNPP[0].value) * 100;
+            const region = getRegionByNPP(npp.npp);
+            const displayName = region ? `${npp.npp} - ${region}` : npp.npp;
+            
+            html += `
+                <div class="npp-rank-item">
+                    <div class="rank-number">${i + 1}</div>
+                    <div class="npp-info">
+                        <div class="npp-name">${displayName}</div>
+                        <div class="npp-value">${this.formatCurrency(npp.value)} VNĐ</div>
+                        <div class="npp-quantity">(${this.formatNumber(npp.quantity)} Thùng)</div>
+                        <div class="progress-bar-rank">
+                            <div class="progress-fill" style="width: ${percent}%"></div>
                         </div>
-                    </div>
-                `;
-            }
-        }
-        
-        html += `
                     </div>
                 </div>
-                <div class="top-import-card">
-                    <div class="card-header">🍿 NPP nhập Bim Quẩy nhiều nhất</div>
-                    <div class="card-content">
-        `;
-        
-        if (!topBimQuayNPP || topBimQuayNPP.length === 0) {
-            html += `<div class="empty-state">Không có dữ liệu</div>`;
-        } else {
-            for (let i = 0; i < Math.min(topBimQuayNPP.length, 5); i++) {
-                const npp = topBimQuayNPP[i];
-                const percent = i === 0 ? 100 : (npp.value / topBimQuayNPP[0].value) * 100;
-                html += `
-                    <div class="npp-rank-item">
-                        <div class="rank-number">${i + 1}</div>
-                        <div class="npp-info">
-                            <div class="npp-name">${npp.npp}</div>
-                            <div class="npp-value">${this.formatCurrency(npp.value)} VNĐ</div>
-                            <div class="npp-quantity">(${this.formatNumber(npp.quantity)} Thùng)</div>
-                            <div class="progress-bar-rank">
-                                <div class="progress-fill" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+            `;
         }
-        
-        html += `
-                    </div>
+    }
+    
+    html += `
                 </div>
             </div>
-        `;
-        
-        this.topImportCardsElement.innerHTML = html;
-    },
+            <div class="top-import-card">
+                <div class="card-header">🍿 NPP tồn Bim Quẩy nhiều nhất</div>
+                <div class="card-content">
+    `;
+    
+    if (!topBimQuayNPP || topBimQuayNPP.length === 0) {
+        html += `<div class="empty-state">Không có dữ liệu</div>`;
+    } else {
+        for (let i = 0; i < Math.min(topBimQuayNPP.length, 5); i++) {
+            const npp = topBimQuayNPP[i];
+            const percent = i === 0 ? 100 : (npp.value / topBimQuayNPP[0].value) * 100;
+            const region = getRegionByNPP(npp.npp);
+            const displayName = region ? `${npp.npp} - ${region}` : npp.npp;
+            
+            html += `
+                <div class="npp-rank-item">
+                    <div class="rank-number">${i + 1}</div>
+                    <div class="npp-info">
+                        <div class="npp-name">${displayName}</div>
+                        <div class="npp-value">${this.formatCurrency(npp.value)} VNĐ</div>
+                        <div class="npp-quantity">(${this.formatNumber(npp.quantity)} Thùng)</div>
+                        <div class="progress-bar-rank">
+                            <div class="progress-fill" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    this.topImportCardsElement.innerHTML = html;
+},
     
     renderStats: function(totalQuantity, totalValue, totalNPP) {
         if (!this.statsElement) return;
@@ -213,115 +219,123 @@ const Overview = {
     },
     
     renderTopNPPChart: function(nppSummary) {
-        if (!this.topNPPChartElement) return;
+    if (!this.topNPPChartElement) return;
+    
+    const nppArray = Object.entries(nppSummary).map(([name, data]) => ({
+        name: name,
+        total_value: data.total_value,
+        total_quantity: data.total_quantity,
+        products: data.products,
+        region: getRegionByNPP(name) // Thêm region
+    }));
+    
+    const top10 = nppArray.sort((a, b) => b.total_value - a.total_value).slice(0, 10);
+    const maxValue = top10.length > 0 ? top10[0].total_value : 1;
+    
+    if (top10.length === 0) {
+        this.topNPPChartElement.innerHTML = `
+            <div class="chart-container">
+                <div class="chart-title">🏆 Top 10 NPP tồn kho nhiều nhất (theo giá trị)</div>
+                <div class="empty-state">Không có dữ liệu</div>
+            </div>
+        `;
+        return;
+    }
+    
+    let chartHtml = `
+        <div class="chart-container">
+            <div class="chart-title">🏆 Top 10 NPP tồn kho nhiều nhất (theo giá trị)</div>
+            <div class="chart-bars">
+    `;
+    
+    for (const npp of top10) {
+        const percent = (npp.total_value / maxValue) * 100;
+        const categorySummary = this.getCategorySummaryForNPP(npp.products);
+        const tooltipHTML = this.createNPPTooltipHTML(npp.name, categorySummary, npp.total_value, npp.total_quantity);
         
-        const nppArray = Object.entries(nppSummary).map(([name, data]) => ({
+        // Thêm KV vào tên hiển thị
+        const displayName = npp.region ? `${npp.name} - ${npp.region}` : npp.name;
+        
+        chartHtml += `
+            <div class="chart-bar-item tooltip-trigger" data-tooltip='${tooltipHTML.replace(/'/g, "\\'").replace(/\n/g, ' ')}'>
+                <div class="chart-label">${displayName}</div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="width: ${percent}%">
+                        ${percent > 20 ? this.formatCurrency(npp.total_value) + ' VNĐ' : ''}
+                    </div>
+                </div>
+                <div class="chart-value">
+                    <span class="value-money">${this.formatCurrency(npp.total_value)} VNĐ</span>
+                    <span class="value-quantity">(${this.formatNumber(npp.total_quantity)} Thùng)</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    chartHtml += `</div></div>`;
+    this.topNPPChartElement.innerHTML = chartHtml;
+},
+    
+   renderBottomNPPChart: function(nppSummary) {
+    if (!this.bottomNPPChartElement) return;
+    
+    const nppArray = Object.entries(nppSummary)
+        .map(([name, data]) => ({
             name: name,
             total_value: data.total_value,
             total_quantity: data.total_quantity,
-            products: data.products
-        }));
-        
-        const top10 = nppArray.sort((a, b) => b.total_value - a.total_value).slice(0, 10);
-        const maxValue = top10.length > 0 ? top10[0].total_value : 1;
-        
-        if (top10.length === 0) {
-            this.topNPPChartElement.innerHTML = `
-                <div class="chart-container">
-                    <div class="chart-title">🏆 Top 10 NPP tồn kho nhiều nhất (theo giá trị)</div>
-                    <div class="empty-state">Không có dữ liệu</div>
-                </div>
-            `;
-            return;
-        }
-        
-        let chartHtml = `
-            <div class="chart-container">
-                <div class="chart-title">🏆 Top 10 NPP tồn kho nhiều nhất (theo giá trị)</div>
-                <div class="chart-bars">
-        `;
-        
-        for (const npp of top10) {
-            const percent = (npp.total_value / maxValue) * 100;
-            const categorySummary = this.getCategorySummaryForNPP(npp.products);
-            const tooltipHTML = this.createNPPTooltipHTML(npp.name, categorySummary, npp.total_value, npp.total_quantity);
-            
-            chartHtml += `
-                <div class="chart-bar-item tooltip-trigger" data-tooltip='${tooltipHTML.replace(/'/g, "\\'").replace(/\n/g, ' ')}'>
-                    <div class="chart-label">${npp.name}</div>
-                    <div class="chart-bar-wrapper">
-                        <div class="chart-bar" style="width: ${percent}%">
-                            ${percent > 20 ? this.formatCurrency(npp.total_value) + ' VNĐ' : ''}
-                        </div>
-                    </div>
-                    <div class="chart-value">
-                        <span class="value-money">${this.formatCurrency(npp.total_value)} VNĐ</span>
-                        <span class="value-quantity">(${this.formatNumber(npp.total_quantity)} Thùng)</span>
-                    </div>
-                </div>
-            `;
-        }
-        
-        chartHtml += `</div></div>`;
-        this.topNPPChartElement.innerHTML = chartHtml;
-    },
+            products: data.products,
+            region: getRegionByNPP(name) // Thêm region
+        }))
+        .filter(npp => npp.total_value > 0);
     
-    renderBottomNPPChart: function(nppSummary) {
-        if (!this.bottomNPPChartElement) return;
-        
-        const nppArray = Object.entries(nppSummary)
-            .map(([name, data]) => ({
-                name: name,
-                total_value: data.total_value,
-                total_quantity: data.total_quantity,
-                products: data.products
-            }))
-            .filter(npp => npp.total_value > 0);
-        
-        const bottom10 = nppArray.sort((a, b) => a.total_value - b.total_value).slice(0, 10);
-        
-        if (bottom10.length === 0) {
-            this.bottomNPPChartElement.innerHTML = `
-                <div class="chart-container">
-                    <div class="chart-title">📉 Top 10 NPP tồn kho ít nhất (theo giá trị)</div>
-                    <div class="empty-state">Không có dữ liệu</div>
-                </div>
-            `;
-            return;
-        }
-        
-        const maxValue = bottom10[bottom10.length - 1].total_value;
-        
-        let chartHtml = `
+    const bottom10 = nppArray.sort((a, b) => a.total_value - b.total_value).slice(0, 10);
+    
+    if (bottom10.length === 0) {
+        this.bottomNPPChartElement.innerHTML = `
             <div class="chart-container">
                 <div class="chart-title">📉 Top 10 NPP tồn kho ít nhất (theo giá trị)</div>
-                <div class="chart-bars">
+                <div class="empty-state">Không có dữ liệu</div>
+            </div>
         `;
+        return;
+    }
+    
+    const maxValue = bottom10[bottom10.length - 1].total_value;
+    
+    let chartHtml = `
+        <div class="chart-container">
+            <div class="chart-title">📉 Top 10 NPP tồn kho ít nhất (theo giá trị)</div>
+            <div class="chart-bars">
+    `;
+    
+    for (const npp of bottom10) {
+        const percent = (npp.total_value / maxValue) * 100;
+        const categorySummary = this.getCategorySummaryForNPP(npp.products);
+        const tooltipHTML = this.createNPPTooltipHTML(npp.name, categorySummary, npp.total_value, npp.total_quantity);
         
-        for (const npp of bottom10) {
-            const percent = (npp.total_value / maxValue) * 100;
-            const categorySummary = this.getCategorySummaryForNPP(npp.products);
-            const tooltipHTML = this.createNPPTooltipHTML(npp.name, categorySummary, npp.total_value, npp.total_quantity);
-            
-            chartHtml += `
-                <div class="chart-bar-item tooltip-trigger" data-tooltip='${tooltipHTML.replace(/'/g, "\\'").replace(/\n/g, ' ')}'>
-                    <div class="chart-label">${npp.name}</div>
-                    <div class="chart-bar-wrapper">
-                        <div class="chart-bar chart-bar-bottom" style="width: ${percent}%; background: linear-gradient(90deg, #fd7e14, #ffc107);">
-                            ${percent > 20 ? this.formatCurrency(npp.total_value) + ' VNĐ' : ''}
-                        </div>
-                    </div>
-                    <div class="chart-value">
-                        <span class="value-money">${this.formatCurrency(npp.total_value)} VNĐ</span>
-                        <span class="value-quantity">(${this.formatNumber(npp.total_quantity)} Thùng)</span>
+        // Thêm KV vào tên hiển thị
+        const displayName = npp.region ? `${npp.name} - ${npp.region}` : npp.name;
+        
+        chartHtml += `
+            <div class="chart-bar-item tooltip-trigger" data-tooltip='${tooltipHTML.replace(/'/g, "\\'").replace(/\n/g, ' ')}'>
+                <div class="chart-label">${displayName}</div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar chart-bar-bottom" style="width: ${percent}%; background: linear-gradient(90deg, #ffc107, #fd7e14);">
+                        ${percent > 20 ? this.formatCurrency(npp.total_value) + ' VNĐ' : ''}
                     </div>
                 </div>
-            `;
-        }
-        
-        chartHtml += `</div></div>`;
-        this.bottomNPPChartElement.innerHTML = chartHtml;
-    },
+                <div class="chart-value">
+                    <span class="value-money">${this.formatCurrency(npp.total_value)} VNĐ</span>
+                    <span class="value-quantity">(${this.formatNumber(npp.total_quantity)} Thùng)</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    chartHtml += `</div></div>`;
+    this.bottomNPPChartElement.innerHTML = chartHtml;
+},
     
     getCategorySummary: function(allProducts) {
         const categorySummary = {

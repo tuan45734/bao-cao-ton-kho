@@ -52,8 +52,8 @@
 }
 
 .top-import-card .card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    bbackground: linear-gradient(90deg, #ffc107, #fd7e14);
+    color: rgb(0, 0, 0);
     padding: 15px 20px;
     font-weight: 600;
     font-size: 16px;
@@ -124,7 +124,7 @@
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+   background: linear-gradient(90deg, #ffc107, #fd7e14);
     border-radius: 4px;
     transition: width 0.3s;
 }
@@ -181,7 +181,7 @@
 
 .chart-bar {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+   background: linear-gradient(90deg, #ffc107, #fd7e14);
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -194,7 +194,7 @@
 }
 
 .chart-bar-bottom {
-    background: linear-gradient(90deg, #fd7e14, #ffc107) !important;
+    background: linear-gradient(90deg, #ffc107, #fd7e14) !important;
 }
 
 .chart-value {
