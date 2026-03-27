@@ -4,7 +4,7 @@ const CONFIG = {
     AUTH_TOKEN: 'Basic NjlhZTZlNmM4YTY0NjVmNDFlNTNhZmI0OjFuYzFnc3J1N2p2Ym10eTdncGV5NWk=',
     DELAY_MS: 1000,
     
-    EXCLUDED_PRODUCTS: ['HH00101_T01_1'],
+    EXCLUDED_PRODUCTS: ['HH00101_T01_1', 'CCDC002','CCDC0001','HH00101_T1112'],
     EXCLUDED_WAREHOUSES: ['Kho chính'],
     
     CONVERSION_RATES: {
@@ -45,6 +45,7 @@ const UnitConverter = {
 };
 
 // ======================= QUẢN LÝ TỒN KHO =======================
+// ======================= QUẢN LÝ TỒN KHO =======================
 const InventoryManager = {
     map: new Map(),
     importMap: new Map(),
@@ -53,7 +54,9 @@ const InventoryManager = {
     exportDetailMap: new Map(),
     nppImportDetailMap: new Map(),
     
-    getKey: (npp, ma_sp) => `${npp}|${ma_sp}`,
+    getKey: function(npp, ma_sp) {
+        return `${npp}|${ma_sp}`;
+    },
     
     update: function(npp, ma_sp, ten_sp, so_luong, thanh_tien) {
         if (CONFIG.isExcludedProduct(ma_sp)) return;
@@ -131,19 +134,16 @@ const InventoryManager = {
         detail.products.push({ ma_sp, ten_sp, so_luong, thanh_tien, category, npp: normalizedNPP });
         this.exportDetailMap.set(key, detail);
     },
+    
     getTopNPPByCategoryFromInventory: function(categoryName, limit = 5) {
-        // Duyệt qua tất cả sản phẩm tồn kho trong map
-        const nppInventoryMap = new Map(); // key: npp, value: { value, quantity, products }
+        const nppInventoryMap = new Map();
         
         for (const [key, item] of this.map) {
-            // Bỏ qua sản phẩm có số lượng <= 0
             if (item.so_luong <= 0) continue;
             if (CONFIG.isExcludedWarehouse(item.npp)) continue;
             
-            // Lấy ngành hàng của sản phẩm
             const productCategory = Overview.getNganhHang(item.ten_sp);
             
-            // Chỉ tính nếu đúng ngành hàng cần tìm
             if (productCategory === categoryName) {
                 if (!nppInventoryMap.has(item.npp)) {
                     nppInventoryMap.set(item.npp, {
@@ -166,11 +166,11 @@ const InventoryManager = {
             }
         }
         
-        // Chuyển thành mảng và sắp xếp theo giá trị giảm dần
         return Array.from(nppInventoryMap.values())
             .sort((a, b) => b.value - a.value)
             .slice(0, limit);
     },
+    
     getTopNPPByCategory: function(categoryName, limit = 5) {
         if (!this.nppImportDetailMap) return [];
         
@@ -212,58 +212,215 @@ const InventoryManager = {
         this.nppImportDetailMap.clear();
     },
     
-  getSummary: function() {
-    const items = [];
-    const uniqueNPP = new Set();
-    
-    for (const [_, item] of this.map) {
-        if (Math.abs(item.so_luong) > 0.001 && !CONFIG.isExcludedWarehouse(item.npp)) {
-            // KIỂM TRA NPP CÓ THUỘC 6 KV KHÔNG
+    getSummary: function() {
+        const items = [];
+        const uniqueNPP = new Set();
+        
+        for (const [_, item] of this.map) {
+            if (Math.abs(item.so_luong) > 0.001 && !CONFIG.isExcludedWarehouse(item.npp)) {
+                const region = getRegionByNPP(item.npp);
+                if (!region) continue;
+                
+                items.push(item);
+                uniqueNPP.add(item.npp);
+            }
+        }
+        
+        const nppSummary = {};
+        const regionSummary = {};
+        const regionValueSummary = {};
+        const regionProducts = {};
+        
+        for (const item of items) {
             const region = getRegionByNPP(item.npp);
-            if (!region) continue; // Bỏ qua NPP không thuộc KV nào
+            if (!region) continue;
             
-            items.push(item);
-            uniqueNPP.add(item.npp);
+            if (!nppSummary[item.npp]) {
+                nppSummary[item.npp] = { total_quantity: 0, total_value: 0, products: [] };
+            }
+            nppSummary[item.npp].total_quantity += item.so_luong;
+            nppSummary[item.npp].total_value += item.thanh_tien;
+            nppSummary[item.npp].products.push(item);
+            
+            if (!regionSummary[region]) regionSummary[region] = 0;
+            regionSummary[region] += item.so_luong;
+            
+            if (!regionValueSummary[region]) regionValueSummary[region] = 0;
+            regionValueSummary[region] += item.thanh_tien;
+            
+            if (!regionProducts[region]) regionProducts[region] = {};
+            if (!regionProducts[region][item.npp]) regionProducts[region][item.npp] = [];
+            regionProducts[region][item.npp].push(item);
+        }
+        
+        return {
+            nppSummary,
+            regionSummary,
+            regionValueSummary,
+            regionProducts,
+            totalNPP: uniqueNPP.size,
+            totalQuantity: items.reduce((s, i) => s + i.so_luong, 0),
+            totalValue: items.reduce((s, i) => s + i.thanh_tien, 0)
+        };
+    },
+    
+    // ======================= HÀM DEBUG NPP BẢO LÂM =======================
+    debugNPP: function(nppName) {
+        const normalizedName = normalizeNPP(nppName);
+        console.log(`%c========== DEBUG NPP: ${normalizedName} ==========`, 'color: #ff6600; font-weight: bold; font-size: 14px');
+        
+        // 1. TỔNG HỢP NHẬP KHO (trong kỳ)
+        console.log(`\n📥 NHẬP KHO (trong kỳ):`);
+        let totalImportQuantity = 0;
+        let totalImportValue = 0;
+        const importProducts = [];
+        
+        for (const [key, detail] of this.nppImportDetailMap) {
+            const [npp, category] = key.split('|');
+            if (npp === normalizedName) {
+                console.log(`   [${category}] Số lượng: ${detail.quantity.toLocaleString()} Thùng | Giá trị: ${detail.value.toLocaleString()} VNĐ`);
+                totalImportQuantity += detail.quantity;
+                totalImportValue += detail.value;
+                
+                // Chi tiết sản phẩm nhập
+                for (const p of detail.products) {
+                    importProducts.push({
+                        ma_sp: p.ma_sp,
+                        ten_sp: p.ten_sp,
+                        so_luong: p.so_luong,
+                        thanh_tien: p.thanh_tien,
+                        category: category
+                    });
+                }
+            }
+        }
+        
+        if (totalImportQuantity === 0) {
+            console.log(`   ⚠️ Không có dữ liệu nhập kho`);
+        } else {
+            console.log(`   📊 TỔNG NHẬP: ${totalImportQuantity.toLocaleString()} Thùng | ${totalImportValue.toLocaleString()} VNĐ`);
+        }
+        
+        // 2. TỒN KHO CUỐI KỲ
+        console.log(`\n📦 TỒN KHO CUỐI KỲ:`);
+        let totalInventoryQuantity = 0;
+        let totalInventoryValue = 0;
+        const inventoryProducts = [];
+        
+        for (const [key, item] of this.map) {
+            if (item.npp === normalizedName && Math.abs(item.so_luong) > 0.001) {
+                totalInventoryQuantity += item.so_luong;
+                totalInventoryValue += item.thanh_tien;
+                inventoryProducts.push({
+                    ma_sp: item.ma_sp,
+                    ten_sp: item.ten_sp,
+                    so_luong: item.so_luong,
+                    thanh_tien: item.thanh_tien
+                });
+            }
+        }
+        
+        if (totalInventoryQuantity === 0) {
+            console.log(`   ⚠️ Không có tồn kho`);
+        } else {
+            console.log(`   📊 TỔNG TỒN: ${totalInventoryQuantity.toLocaleString()} Thùng | ${totalInventoryValue.toLocaleString()} VNĐ`);
+        }
+        
+        // 3. CHI TIẾT SẢN PHẨM TỒN KHO (Top 10 theo giá trị)
+        if (inventoryProducts.length > 0) {
+            console.log(`\n📋 CHI TIẾT SẢN PHẨM TỒN KHO (Top 10 theo giá trị):`);
+            inventoryProducts.sort((a, b) => b.thanh_tien - a.thanh_tien);
+            for (let i = 0; i < Math.min(inventoryProducts.length, 10); i++) {
+                const p = inventoryProducts[i];
+                const category = Overview.getNganhHang(p.ten_sp);
+                console.log(`   ${(i+1).toString().padStart(2)}. ${p.ma_sp} | ${p.ten_sp?.substring(0, 30) || '-'} | ${category} | SL: ${p.so_luong.toLocaleString()} | TT: ${p.thanh_tien.toLocaleString()} VNĐ`);
+            }
+            if (inventoryProducts.length > 10) {
+                console.log(`   ... và ${inventoryProducts.length - 10} sản phẩm khác`);
+            }
+        }
+        
+        // 4. CHI TIẾT SẢN PHẨM NHẬP KHO (Top 10 theo giá trị)
+        if (importProducts.length > 0) {
+            console.log(`\n📋 CHI TIẾT SẢN PHẨM NHẬP KHO (Top 10 theo giá trị):`);
+            importProducts.sort((a, b) => b.thanh_tien - a.thanh_tien);
+            for (let i = 0; i < Math.min(importProducts.length, 10); i++) {
+                const p = importProducts[i];
+                console.log(`   ${(i+1).toString().padStart(2)}. ${p.ma_sp} | ${p.ten_sp?.substring(0, 30) || '-'} | ${p.category} | SL: ${p.so_luong.toLocaleString()} | TT: ${p.thanh_tien.toLocaleString()} VNĐ`);
+            }
+            if (importProducts.length > 10) {
+                console.log(`   ... và ${importProducts.length - 10} sản phẩm khác`);
+            }
+        }
+        
+        // 5. THỐNG KÊ THEO NGÀNH HÀNG
+        console.log(`\n🏷️ THỐNG KÊ THEO NGÀNH HÀNG:`);
+        const categoryStats = {};
+        
+        for (const p of inventoryProducts) {
+            const cat = Overview.getNganhHang(p.ten_sp);
+            if (!categoryStats[cat]) {
+                categoryStats[cat] = { quantity: 0, value: 0, count: 0 };
+            }
+            categoryStats[cat].quantity += p.so_luong;
+            categoryStats[cat].value += p.thanh_tien;
+            categoryStats[cat].count++;
+        }
+        
+        const categories = ['Chân Gà', 'Bim Quẩy', 'Hàng Ướt', 'Cá Cơm', 'Khác'];
+        for (const cat of categories) {
+            const stat = categoryStats[cat];
+            if (stat) {
+                const percent = totalInventoryValue > 0 ? (stat.value / totalInventoryValue * 100).toFixed(1) : 0;
+                console.log(`   ${cat.padEnd(12)}: SL: ${stat.quantity.toLocaleString().padStart(10)} Thùng | TT: ${stat.value.toLocaleString().padStart(15)} VNĐ (${percent}%) | ${stat.count} mặt hàng`);
+            } else {
+                console.log(`   ${cat.padEnd(12)}: Không có tồn kho`);
+            }
+        }
+        
+        console.log(`%c==========================================`, 'color: #ff6600; font-weight: bold');
+        console.log(``);
+        
+        return {
+            npp: normalizedName,
+            import: {
+                quantity: totalImportQuantity,
+                value: totalImportValue,
+                products: importProducts
+            },
+            inventory: {
+                quantity: totalInventoryQuantity,
+                value: totalInventoryValue,
+                products: inventoryProducts
+            },
+            categoryStats: categoryStats
+        };
+    },
+    
+    // Debug nhiều NPP cùng lúc
+    debugMultipleNPP: function(nppList) {
+        console.log(`%c🔍 DEBUG NHIỀU NPP`, 'color: #00aaff; font-weight: bold; font-size: 16px');
+        console.log(`==========================================`);
+        for (const npp of nppList) {
+            this.debugNPP(npp);
+        }
+    },
+    
+    // Debug tất cả NPP trong khu vực
+    debugNPPByRegion: function(region) {
+        console.log(`%c🔍 DEBUG NPP TRONG KHU VỰC ${region}`, 'color: #00aaff; font-weight: bold; font-size: 16px');
+        console.log(`==========================================`);
+        
+        const nppInRegion = NPP_BY_REGION[region] || [];
+        if (nppInRegion.length === 0) {
+            console.log(`⚠️ Không tìm thấy NPP trong khu vực ${region}`);
+            return;
+        }
+        
+        for (const npp of nppInRegion) {
+            this.debugNPP(npp);
         }
     }
-    
-    const nppSummary = {};
-    const regionSummary = {};
-    const regionValueSummary = {};
-    const regionProducts = {};
-    
-    for (const item of items) {
-        const region = getRegionByNPP(item.npp);
-        if (!region) continue;
-        
-        if (!nppSummary[item.npp]) {
-            nppSummary[item.npp] = { total_quantity: 0, total_value: 0, products: [] };
-        }
-        nppSummary[item.npp].total_quantity += item.so_luong;
-        nppSummary[item.npp].total_value += item.thanh_tien;
-        nppSummary[item.npp].products.push(item);
-        
-        if (!regionSummary[region]) regionSummary[region] = 0;
-        regionSummary[region] += item.so_luong;
-        
-        if (!regionValueSummary[region]) regionValueSummary[region] = 0;
-        regionValueSummary[region] += item.thanh_tien;
-        
-        if (!regionProducts[region]) regionProducts[region] = {};
-        if (!regionProducts[region][item.npp]) regionProducts[region][item.npp] = [];
-        regionProducts[region][item.npp].push(item);
-    }
-    
-    return {
-        nppSummary,
-        regionSummary,
-        regionValueSummary,
-        regionProducts,
-        totalNPP: uniqueNPP.size,
-        totalQuantity: items.reduce((s, i) => s + i.so_luong, 0),   // Chỉ tính NPP thuộc KV
-        totalValue: items.reduce((s, i) => s + i.thanh_tien, 0)    // Chỉ tính NPP thuộc KV
-    };
-},
 };
 
 // ======================= XỬ LÝ API =======================
@@ -451,6 +608,15 @@ async function fetchAndCalculate() {
         await CONFIG.sleep(300);
         
         const summary = InventoryManager.getSummary();
+        
+        // ========== THÊM DÒNG DEBUG NÀY ==========
+        InventoryManager.debugNPP('NPP Bảo Lâm');
+        // Hoặc debug nhiều NPP:
+        // InventoryManager.debugMultipleNPP(['NPP Bảo Lâm', 'NPP Thành Lụa', 'NPP Công Giang']);
+        // Hoặc debug theo khu vực:
+        // InventoryManager.debugNPPByRegion('KV1');
+        // ==========================================
+        
         UI.displayResults(summary);
         
     } catch (err) {

@@ -166,9 +166,9 @@
     font-weight: 600;
     color: #667eea;
     font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+   
+   
+   
 }
 
 .chart-bar-wrapper {
@@ -251,6 +251,7 @@
     position: relative;
 }
 
+/* Tooltip chung */
 .custom-tooltip {
     position: fixed;
     background: rgba(0, 0, 0, 0.95);
@@ -266,6 +267,7 @@
     min-width: 280px;
     transition: opacity 0.2s ease;
     opacity: 0;
+    animation: tooltipFadeIn 0.2s ease;
 }
 
 .custom-tooltip .tooltip-title {
@@ -304,6 +306,7 @@
 
 .custom-tooltip .tooltip-header span:first-child {
     flex: 2;
+    text-align: left;
 }
 
 .custom-tooltip .tooltip-header span:nth-child(2) {
@@ -326,6 +329,7 @@
 .custom-tooltip .tooltip-row span:first-child {
     flex: 2;
     font-weight: 500;
+    text-align: left;
 }
 
 .custom-tooltip .tooltip-row span:nth-child(2) {
@@ -343,85 +347,149 @@
     color: #ffd966;
 }
 
-/* Product tooltip - hiển thị tất cả sản phẩm */
+/* ==================== PRODUCT TOOLTIP - HIỂN THỊ TẤT CẢ SẢN PHẨM ==================== */
 .custom-tooltip .product-tooltip {
-    min-width: 500px;
+    min-width: 700px;
     max-width: 90vw;
-    max-height: 80vh;
-    overflow-y: auto;
+   
+    overflow: auto;
 }
 
-/* Tùy chỉnh scrollbar cho tooltip */
+/* Scrollbar cho tooltip */
 .custom-tooltip .product-tooltip::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 .custom-tooltip .product-tooltip::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .custom-tooltip .product-tooltip::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .custom-tooltip .product-tooltip::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
 }
 
+/* Header của product tooltip */
+.custom-tooltip .product-tooltip .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    font-weight: 600;
+    color: #ffd966;
+    font-size: 11px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin-bottom: 8px;
+    position: sticky;
+    top: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(8px);
+    z-index: 1;
+}
+
+.custom-tooltip .product-tooltip .tooltip-header span:first-child {
+    width: 80px;
+    flex-shrink: 0;
+    text-align: left;
+}
+
+.custom-tooltip .product-tooltip .tooltip-header span:nth-child(2) {
+    flex: 2;
+    min-width: 200px;
+    text-align: left;
+}
+
+.custom-tooltip .product-tooltip .tooltip-header span:nth-child(3) {
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.custom-tooltip .product-tooltip .tooltip-header span:nth-child(4) {
+    width: 120px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+/* Row sản phẩm */
 .custom-tooltip .product-row {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-    font-size: 11px;
-    padding: 6px 0;
+    gap: 8px;
+    font-size: 12px;
+    padding: 8px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    align-items: center;
 }
 
 .custom-tooltip .product-row:last-child {
     border-bottom: none;
 }
 
+/* Mã sản phẩm */
 .custom-tooltip .product-code {
     width: 80px;
+    flex-shrink: 0;
     font-family: monospace;
     color: #ffd966;
-}
-
-.custom-tooltip .product-name {
-    flex: 2;
+    font-size: 11px;
+    text-align: left;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.custom-tooltip .tooltip-header span:first-child {
-    width: 80px;
-}
-
-.custom-tooltip .tooltip-header span:nth-child(2) {
+/* Tên sản phẩm - HIỂN THỊ TRÊN 1 DÒNG, ĐẦY ĐỦ, CUỘN NGANG NẾU CẦN */
+.custom-tooltip .product-name {
     flex: 2;
+    min-width: 400px;
+    text-align: left;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    font-size: 10px;
+    line-height: 1;
+    scrollbar-width: thin;
 }
 
-.custom-tooltip .tooltip-header span:nth-child(3),
-.custom-tooltip .tooltip-header span:nth-child(4) {
+/* Custom scrollbar cho tên sản phẩm khi cuộn ngang */
+.custom-tooltip .product-name::-webkit-scrollbar {
+    height: 2px;
+}
+
+.custom-tooltip .product-name::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.custom-tooltip .product-name::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+/* Số lượng và giá trị */
+.custom-tooltip .product-row span:nth-child(3) {
     width: 100px;
+    flex-shrink: 0;
     text-align: right;
+    font-weight: 500;
 }
 
-.custom-tooltip .product-row span:nth-child(3),
 .custom-tooltip .product-row span:nth-child(4) {
-    width: 100px;
+    width: 120px;
+    flex-shrink: 0;
     text-align: right;
+    font-weight: 500;
+    color: #4caf50;
 }
 
-/* Xóa phần tooltip-more */
-.custom-tooltip .tooltip-more {
-    display: none;
-}
-
-/* Tooltip category styles (cho detail) */
+/* ==================== CATEGORY TOOLTIP TRONG DETAIL ==================== */
 .custom-tooltip .tooltip-category {
     margin-bottom: 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -468,10 +536,12 @@
 
 .custom-tooltip .tooltip-category-products .tooltip-header span:first-child {
     width: 70px;
+    text-align: left;
 }
 
 .custom-tooltip .tooltip-category-products .tooltip-header span:nth-child(2) {
     flex: 2;
+    text-align: left;
 }
 
 .custom-tooltip .tooltip-category-products .tooltip-header span:nth-child(3),
@@ -482,10 +552,14 @@
 
 .custom-tooltip .tooltip-category-products .product-row span:first-child {
     width: 70px;
+    text-align: left;
 }
 
 .custom-tooltip .tooltip-category-products .product-row span:nth-child(2) {
     flex: 2;
+    text-align: left;
+    white-space: nowrap;
+    overflow-x: auto;
 }
 
 .custom-tooltip .tooltip-category-products .product-row span:nth-child(3),
@@ -494,6 +568,7 @@
     text-align: right;
 }
 
+/* Animation */
 @keyframes tooltipFadeIn {
     from {
         opacity: 0;
@@ -505,41 +580,30 @@
     }
 }
 
-.custom-tooltip {
-    animation: tooltipFadeIn 0.2s ease;
+/* Responsive */
+@media (max-width: 768px) {
+    .custom-tooltip .product-tooltip {
+        min-width: 90vw;
+        max-width: 95vw;
+    }
+    
+    .custom-tooltip .product-code {
+        width: 70px;
+        font-size: 10px;
+    }
+    
+    .custom-tooltip .product-name {
+        min-width: 150px;
+        font-size: 11px;
+    }
+    
+    .custom-tooltip .product-row span:nth-child(3) {
+        width: 80px;
+    }
+    
+    .custom-tooltip .product-row span:nth-child(4) {
+        width: 100px;
+        font-size: 11px;
+    }
 }
 
-@media (max-width: 768px) {
-    .chart-label {
-        width: 120px;
-        font-size: 11px;
-    }
-    
-    .chart-value {
-        min-width: 140px;
-        font-size: 11px;
-    }
-    
-    .value-money, .value-quantity {
-        font-size: 11px;
-    }
-    
-    .custom-tooltip .product-tooltip {
-        min-width: 320px;
-        max-width: 400px;
-    }
-    
-    .top-import-cards {
-        flex-direction: column;
-    }
-    
-    .npp-rank-item {
-        gap: 8px;
-    }
-    
-    .rank-number {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-}
