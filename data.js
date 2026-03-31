@@ -13086,8 +13086,8 @@ function normalizeNPP(nppName) {
     if (nppName === 'NPP Chị Lụa') {
         return 'NPP Thành Lụa';
     }
-     if (nppName === 'NPP Hoa Việt') {
-        return 'NPP Việt Hoa';
+     if (nppName === 'NPP Việt Hoa') {
+        return 'NPP Hoa Việt';
     }
     return nppName;
 }

@@ -18,13 +18,13 @@ const Detail = {
     },
     
     formatNumber: function(num) {
-        let formatted = num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 3 });
-        formatted = formatted.replace(/\.000$/, '');
-        return formatted;
+        // Format số nguyên, không có phần thập phân
+        return Math.round(num).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
     
     formatCurrency: function(num) {
-        return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        // Format tiền tệ, không có phần thập phân
+        return Math.round(num).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
     
     getNganhHang: function(tenSanPham) {

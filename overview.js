@@ -17,11 +17,13 @@ const Overview = {
     },
     
     formatNumber: function(num) {
-        return num.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        // Format số nguyên, không có phần thập phân
+        return Math.round(num).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
     
     formatCurrency: function(num) {
-        return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        // Format tiền tệ, không có phần thập phân
+        return Math.round(num).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
     
     getNganhHang: function(tenSanPham) {
@@ -213,7 +215,7 @@ const Overview = {
             </div>
             <div class="stat-card">
                 <div class="label">Tổng giá trị tồn</div>
-                <div class="value">${totalValue.toLocaleString()} VNĐ</div>
+                <div class="value">${Math.round(totalValue).toLocaleString()} VNĐ</div>
             </div>
         `;
     },
