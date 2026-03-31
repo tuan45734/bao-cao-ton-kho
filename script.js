@@ -3,6 +3,7 @@ const CONFIG = {
     API_URL: 'https://openapi.mobiwork.vn/OpenAPI/V1/Inventory',
     AUTH_TOKEN: 'Basic NjlhZTZlNmM4YTY0NjVmNDFlNTNhZmI0OjFuYzFnc3J1N2p2Ym10eTdncGV5NWk=',
     DELAY_MS: 1000,
+    PAGE_SIZE: 10000, // Gọi trực tiếp với page_size=10000
     
     EXCLUDED_PRODUCTS: ['HH00101_T01_1', 'CCDC002','CCDC0001','HH00101_T1112'],
     EXCLUDED_WAREHOUSES: ['Kho chính'],
@@ -44,7 +45,6 @@ const UnitConverter = {
     needsConversion: (unit) => unit !== 'Thùng'
 };
 
-// ======================= QUẢN LÝ TỒN KHO =======================
 // ======================= QUẢN LÝ TỒN KHO =======================
 const InventoryManager = {
     map: new Map(),
@@ -171,30 +171,6 @@ const InventoryManager = {
             .slice(0, limit);
     },
     
-    getTopNPPByCategory: function(categoryName, limit = 5) {
-        if (!this.nppImportDetailMap) return [];
-        
-        const nppData = new Map();
-        
-        for (const [key, detail] of this.nppImportDetailMap) {
-            const [npp, category] = key.split('|');
-            if (category === categoryName) {
-                if (!nppData.has(npp)) {
-                    nppData.set(npp, { value: 0, quantity: 0 });
-                }
-                const current = nppData.get(npp);
-                current.value += detail.value;
-                current.quantity += detail.quantity;
-                nppData.set(npp, current);
-            }
-        }
-        
-        return Array.from(nppData.entries())
-            .map(([npp, data]) => ({ npp, ...data }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, limit);
-    },
-    
     loadInitial: function() {
         for (const item of OPENING_STOCK_DATA) {
             let sl = item.so_luong;
@@ -262,201 +238,114 @@ const InventoryManager = {
             totalQuantity: items.reduce((s, i) => s + i.so_luong, 0),
             totalValue: items.reduce((s, i) => s + i.thanh_tien, 0)
         };
-    },
-    
-    // ======================= HÀM DEBUG NPP BẢO LÂM =======================
-    debugNPP: function(nppName) {
-        const normalizedName = normalizeNPP(nppName);
-        console.log(`%c========== DEBUG NPP: ${normalizedName} ==========`, 'color: #ff6600; font-weight: bold; font-size: 14px');
-        
-        // 1. TỔNG HỢP NHẬP KHO (trong kỳ)
-        console.log(`\n📥 NHẬP KHO (trong kỳ):`);
-        let totalImportQuantity = 0;
-        let totalImportValue = 0;
-        const importProducts = [];
-        
-        for (const [key, detail] of this.nppImportDetailMap) {
-            const [npp, category] = key.split('|');
-            if (npp === normalizedName) {
-                console.log(`   [${category}] Số lượng: ${detail.quantity.toLocaleString()} Thùng | Giá trị: ${detail.value.toLocaleString()} VNĐ`);
-                totalImportQuantity += detail.quantity;
-                totalImportValue += detail.value;
-                
-                // Chi tiết sản phẩm nhập
-                for (const p of detail.products) {
-                    importProducts.push({
-                        ma_sp: p.ma_sp,
-                        ten_sp: p.ten_sp,
-                        so_luong: p.so_luong,
-                        thanh_tien: p.thanh_tien,
-                        category: category
-                    });
-                }
-            }
-        }
-        
-        if (totalImportQuantity === 0) {
-            console.log(`   ⚠️ Không có dữ liệu nhập kho`);
-        } else {
-            console.log(`   📊 TỔNG NHẬP: ${totalImportQuantity.toLocaleString()} Thùng | ${totalImportValue.toLocaleString()} VNĐ`);
-        }
-        
-        // 2. TỒN KHO CUỐI KỲ
-        console.log(`\n📦 TỒN KHO CUỐI KỲ:`);
-        let totalInventoryQuantity = 0;
-        let totalInventoryValue = 0;
-        const inventoryProducts = [];
-        
-        for (const [key, item] of this.map) {
-            if (item.npp === normalizedName && Math.abs(item.so_luong) > 0.001) {
-                totalInventoryQuantity += item.so_luong;
-                totalInventoryValue += item.thanh_tien;
-                inventoryProducts.push({
-                    ma_sp: item.ma_sp,
-                    ten_sp: item.ten_sp,
-                    so_luong: item.so_luong,
-                    thanh_tien: item.thanh_tien
-                });
-            }
-        }
-        
-        if (totalInventoryQuantity === 0) {
-            console.log(`   ⚠️ Không có tồn kho`);
-        } else {
-            console.log(`   📊 TỔNG TỒN: ${totalInventoryQuantity.toLocaleString()} Thùng | ${totalInventoryValue.toLocaleString()} VNĐ`);
-        }
-        
-        // 3. CHI TIẾT SẢN PHẨM TỒN KHO (Top 10 theo giá trị)
-        if (inventoryProducts.length > 0) {
-            console.log(`\n📋 CHI TIẾT SẢN PHẨM TỒN KHO (Top 10 theo giá trị):`);
-            inventoryProducts.sort((a, b) => b.thanh_tien - a.thanh_tien);
-            for (let i = 0; i < Math.min(inventoryProducts.length, 10); i++) {
-                const p = inventoryProducts[i];
-                const category = Overview.getNganhHang(p.ten_sp);
-                console.log(`   ${(i+1).toString().padStart(2)}. ${p.ma_sp} | ${p.ten_sp?.substring(0, 30) || '-'} | ${category} | SL: ${p.so_luong.toLocaleString()} | TT: ${p.thanh_tien.toLocaleString()} VNĐ`);
-            }
-            if (inventoryProducts.length > 10) {
-                console.log(`   ... và ${inventoryProducts.length - 10} sản phẩm khác`);
-            }
-        }
-        
-        // 4. CHI TIẾT SẢN PHẨM NHẬP KHO (Top 10 theo giá trị)
-        if (importProducts.length > 0) {
-            console.log(`\n📋 CHI TIẾT SẢN PHẨM NHẬP KHO (Top 10 theo giá trị):`);
-            importProducts.sort((a, b) => b.thanh_tien - a.thanh_tien);
-            for (let i = 0; i < Math.min(importProducts.length, 10); i++) {
-                const p = importProducts[i];
-                console.log(`   ${(i+1).toString().padStart(2)}. ${p.ma_sp} | ${p.ten_sp?.substring(0, 30) || '-'} | ${p.category} | SL: ${p.so_luong.toLocaleString()} | TT: ${p.thanh_tien.toLocaleString()} VNĐ`);
-            }
-            if (importProducts.length > 10) {
-                console.log(`   ... và ${importProducts.length - 10} sản phẩm khác`);
-            }
-        }
-        
-        // 5. THỐNG KÊ THEO NGÀNH HÀNG
-        console.log(`\n🏷️ THỐNG KÊ THEO NGÀNH HÀNG:`);
-        const categoryStats = {};
-        
-        for (const p of inventoryProducts) {
-            const cat = Overview.getNganhHang(p.ten_sp);
-            if (!categoryStats[cat]) {
-                categoryStats[cat] = { quantity: 0, value: 0, count: 0 };
-            }
-            categoryStats[cat].quantity += p.so_luong;
-            categoryStats[cat].value += p.thanh_tien;
-            categoryStats[cat].count++;
-        }
-        
-        const categories = ['Chân Gà', 'Bim Quẩy', 'Hàng Ướt', 'Cá Cơm', 'Khác'];
-        for (const cat of categories) {
-            const stat = categoryStats[cat];
-            if (stat) {
-                const percent = totalInventoryValue > 0 ? (stat.value / totalInventoryValue * 100).toFixed(1) : 0;
-                console.log(`   ${cat.padEnd(12)}: SL: ${stat.quantity.toLocaleString().padStart(10)} Thùng | TT: ${stat.value.toLocaleString().padStart(15)} VNĐ (${percent}%) | ${stat.count} mặt hàng`);
-            } else {
-                console.log(`   ${cat.padEnd(12)}: Không có tồn kho`);
-            }
-        }
-        
-        console.log(`%c==========================================`, 'color: #ff6600; font-weight: bold');
-        console.log(``);
-        
-        return {
-            npp: normalizedName,
-            import: {
-                quantity: totalImportQuantity,
-                value: totalImportValue,
-                products: importProducts
-            },
-            inventory: {
-                quantity: totalInventoryQuantity,
-                value: totalInventoryValue,
-                products: inventoryProducts
-            },
-            categoryStats: categoryStats
-        };
-    },
-    
-    // Debug nhiều NPP cùng lúc
-    debugMultipleNPP: function(nppList) {
-        console.log(`%c🔍 DEBUG NHIỀU NPP`, 'color: #00aaff; font-weight: bold; font-size: 16px');
-        console.log(`==========================================`);
-        for (const npp of nppList) {
-            this.debugNPP(npp);
-        }
-    },
-    
-    // Debug tất cả NPP trong khu vực
-    debugNPPByRegion: function(region) {
-        console.log(`%c🔍 DEBUG NPP TRONG KHU VỰC ${region}`, 'color: #00aaff; font-weight: bold; font-size: 16px');
-        console.log(`==========================================`);
-        
-        const nppInRegion = NPP_BY_REGION[region] || [];
-        if (nppInRegion.length === 0) {
-            console.log(`⚠️ Không tìm thấy NPP trong khu vực ${region}`);
-            return;
-        }
-        
-        for (const npp of nppInRegion) {
-            this.debugNPP(npp);
-        }
     }
 };
 
 // ======================= XỬ LÝ API =======================
 const API = {
-    fetchAll: async (tu_ngay, den_ngay, onProgress) => {
-        let allData = [], page = 1, hasMore = true, total = 0;
+    // Lấy danh sách mã phiếu chuyển kho chưa duyệt
+    fetchUnconfirmedTransferIds: async (tu_ngay, den_ngay) => {
+        const fmtTu = CONFIG.formatDate(tu_ngay);
+        const fmtDen = CONFIG.formatDate(den_ngay);
+        const unconfirmedIds = new Set();
+        let page = 1;
+        let hasMore = true;
+        
+        try {
+            while (hasMore) {
+                const url = `${CONFIG.API_URL}?loai_xuat_nhap=Chuy%E1%BB%83n%20kho%20ch%C6%B0a%20duy%E1%BB%87t&tu_ngay=${encodeURIComponent(fmtTu)}&den_ngay=${encodeURIComponent(fmtDen)}&kieu_ngay=%20&page_size=${CONFIG.PAGE_SIZE}&page_number=${page}`;
+                
+                const response = await fetch(url, { headers: { 'Authorization': CONFIG.AUTH_TOKEN } });
+                
+                if (response.status === 429) {
+                    console.warn('API rate limit, waiting 2 seconds...');
+                    await CONFIG.sleep(2000);
+                    continue;
+                }
+                
+                if (!response.ok) {
+                    console.warn(`Không thể lấy danh sách phiếu chưa duyệt: ${response.status}`);
+                    break;
+                }
+                
+                const data = await response.json();
+                
+                if (data.status && data.data && data.data.length > 0) {
+                    for (const record of data.data) {
+                        if (record.ma_phieu) {
+                            unconfirmedIds.add(record.ma_phieu);
+                        }
+                    }
+                    page++;
+                    hasMore = data.data.length === CONFIG.PAGE_SIZE;
+                    if (hasMore) {
+                        await CONFIG.sleep(CONFIG.DELAY_MS);
+                    }
+                } else {
+                    hasMore = false;
+                }
+            }
+        } catch (error) {
+            console.warn('Lỗi khi lấy danh sách phiếu chưa duyệt:', error.message);
+        }
+        
+        return unconfirmedIds;
+    },
+    
+    // Lấy tất cả dữ liệu, loại bỏ các phiếu chưa duyệt
+    fetchAll: async (tu_ngay, den_ngay, onProgress, excludedPhiếuIds = new Set()) => {
+        let allData = [], page = 1, hasMore = true;
         const fmtTu = CONFIG.formatDate(tu_ngay), fmtDen = CONFIG.formatDate(den_ngay);
         
         onProgress(0);
-        try {
-            const firstUrl = `${CONFIG.API_URL}?tu_ngay=${encodeURIComponent(fmtTu)}&den_ngay=${encodeURIComponent(fmtDen)}&kieu_ngay=%20&page_size=1&page_number=1`;
-            const res = await fetch(firstUrl, { headers: { 'Authorization': CONFIG.AUTH_TOKEN } });
-            const data = await res.json();
-            total = data.total || 0;
-        } catch (e) { console.warn(e); }
         
         let fetched = 0;
         
         while (hasMore) {
-            const url = `${CONFIG.API_URL}?tu_ngay=${encodeURIComponent(fmtTu)}&den_ngay=${encodeURIComponent(fmtDen)}&kieu_ngay=%20&page_size=1000&page_number=${page}`;
-            onProgress(total ? (fetched / total) * 100 : 0);
+            const url = `${CONFIG.API_URL}?tu_ngay=${encodeURIComponent(fmtTu)}&den_ngay=${encodeURIComponent(fmtDen)}&kieu_ngay=%20&page_size=${CONFIG.PAGE_SIZE}&page_number=${page}`;
+            onProgress(fetched > 0 ? 50 : 5);
             
-            const res = await fetch(url, { headers: { 'Authorization': CONFIG.AUTH_TOKEN } });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
+            let response;
+            let retryCount = 0;
+            const maxRetries = 3;
             
-            if (data.status && data.data?.length) {
-                allData.push(...data.data);
+            while (retryCount < maxRetries) {
+                response = await fetch(url, { headers: { 'Authorization': CONFIG.AUTH_TOKEN } });
+                
+                if (response.status === 429) {
+                    retryCount++;
+                    const waitTime = 2000 * retryCount;
+                    console.warn(`API rate limit (429), waiting ${waitTime/1000}s... (retry ${retryCount}/${maxRetries})`);
+                    await CONFIG.sleep(waitTime);
+                    continue;
+                }
+                break;
+            }
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.status && data.data && data.data.length) {
+                // Lọc bỏ các phiếu có mã nằm trong danh sách chưa duyệt
+                const filteredData = data.data.filter(record => {
+                    return !excludedPhiếuIds.has(record.ma_phieu);
+                });
+                
+                allData.push(...filteredData);
                 fetched += data.data.length;
                 page++;
-                hasMore = data.data.length === 1000;
+                hasMore = data.data.length === CONFIG.PAGE_SIZE;
                 if (hasMore) {
                     await CONFIG.sleep(CONFIG.DELAY_MS);
                 }
-            } else hasMore = false;
+            } else {
+                hasMore = false;
+            }
         }
+        
         onProgress(100);
         return allData;
     },
@@ -548,15 +437,14 @@ const UI = {
         this.elements.progressBar.textContent = `${Math.round(p)}%`;
     },
     
-   displayResults: function(summary) {
-    // THAY ĐỔI: Lấy top NPP theo TỒN KHO (không phải theo nhập kho)
-    const topChickenNPP = InventoryManager.getTopNPPByCategoryFromInventory('Chân Gà', 5);
-    const topBimQuayNPP = InventoryManager.getTopNPPByCategoryFromInventory('Bim Quẩy', 5);
-    
-    Overview.update(summary, topChickenNPP, topBimQuayNPP);
-    Detail.update(summary.nppSummary);
-    this.switchTab('overview');
-},
+    displayResults: function(summary) {
+        const topChickenNPP = InventoryManager.getTopNPPByCategoryFromInventory('Chân Gà', 5);
+        const topBimQuayNPP = InventoryManager.getTopNPPByCategoryFromInventory('Bim Quẩy', 5);
+        
+        Overview.update(summary, topChickenNPP, topBimQuayNPP);
+        Detail.update(summary.nppSummary);
+        this.switchTab('overview');
+    },
     
     hideResults: function() {
         Overview.clear();
@@ -598,8 +486,15 @@ async function fetchAndCalculate() {
         UI.updateProgress(0);
         InventoryManager.loadInitial();
         
+        UI.updateProgress(3);
+        
+        // Lấy danh sách mã phiếu chuyển kho chưa duyệt
+        UI.updateProgress(4);
+        const unconfirmedIds = await API.fetchUnconfirmedTransferIds(tu_ngay, den_ngay);
         UI.updateProgress(5);
-        const data = await API.fetchAll(tu_ngay, den_ngay, (p) => UI.updateProgress(p));
+        
+        // Lấy dữ liệu, loại bỏ các phiếu chưa duyệt
+        const data = await API.fetchAll(tu_ngay, den_ngay, (p) => UI.updateProgress(p), unconfirmedIds);
         
         UI.updateProgress(90);
         API.processTransactions(data);
@@ -608,14 +503,6 @@ async function fetchAndCalculate() {
         await CONFIG.sleep(300);
         
         const summary = InventoryManager.getSummary();
-        
-        // ========== THÊM DÒNG DEBUG NÀY ==========
-        InventoryManager.debugNPP('NPP Bảo Lâm');
-        // Hoặc debug nhiều NPP:
-        // InventoryManager.debugMultipleNPP(['NPP Bảo Lâm', 'NPP Thành Lụa', 'NPP Công Giang']);
-        // Hoặc debug theo khu vực:
-        // InventoryManager.debugNPPByRegion('KV1');
-        // ==========================================
         
         UI.displayResults(summary);
         
@@ -627,8 +514,6 @@ async function fetchAndCalculate() {
         UI.elements.fetchBtn.disabled = false;
     }
 }
-
-
 
 // Khởi tạo
 document.addEventListener('DOMContentLoaded', function() {
