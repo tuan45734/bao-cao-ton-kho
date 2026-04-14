@@ -1979,6 +1979,9 @@ function normalizeNPP(nppName) {
      if (nppName === 'NPP Anh Đức 1') {
         return 'NPP Anh Đức 1 (Nghỉ)';
     }
+     if (nppName === 'NPP Tiên Lan') {
+        return 'NPP Tiên Lan (Nghỉ)';
+    }
     return nppName;
 }
 
@@ -1996,7 +1999,7 @@ const NPP_BY_REGION = {
             'NPP Ngọc Phúc', 'NPP Nguyễn Đình Hân', 'NPP Tân Thúy', 'NPP Thăng Hương', 
             'NPP Thảo Thắng', 'NPP Văn Hoàn'],
     'KV5': ['NPP Anh Đức 1 (Nghỉ)','NPP Đồng Lợi', 'NPP Hải Hằng', 'NPP Hiên Cường', 'NPP Hoàng Minh', 'NPP Oanh Định', 
-            'NPP Sơn Lâm', 'NPP Thái Hoà', 'NPP Thảo Xuân', 'NPP Tiên Lan', 'NPP Tuấn Vân', 
+            'NPP Sơn Lâm', 'NPP Thái Hoà', 'NPP Thảo Xuân', 'NPP Tiên Lan (Nghỉ)','NPP Duy Khoa', 'NPP Tuấn Vân', 
             'NPP Vũ Đức Nam'],
     'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 
             'NPP Mạnh Hà 2', 'NPP Minh Châu', 'NPP Minh Lộc', 'NPP Nhung Tùng', 'NPP Phương Hà', 
