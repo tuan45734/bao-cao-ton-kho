@@ -3,7 +3,7 @@ const CONFIG = {
     API_URL: 'https://openapi.mobiwork.vn/OpenAPI/V1/Inventory',
     AUTH_TOKEN: 'Basic NjlhZTZlNmM4YTY0NjVmNDFlNTNhZmI0OjFuYzFnc3J1N2p2Ym10eTdncGV5NWk=',
     DELAY_MS: 1000,
-    PAGE_SIZE: 10000, // Gọi trực tiếp với page_size=10000
+    PAGE_SIZE: 10000,
     
     EXCLUDED_PRODUCTS: ['HH00101_T01_1', 'CCDC002','CCDC0001','HH00101_T1112','HH00071_T02'],
     EXCLUDED_WAREHOUSES: ['Kho chính'],
@@ -16,7 +16,7 @@ const CONFIG = {
         "HH00058": 120, "HH00057": 120, "HH00056": 120, "HH00059": 120,
         "HH00055": 120, "HH00019": 200, "HH00083": 200, "HH00077": 300,
         "HH00079": 300, "HH00074": 300, "HH00078": 300, "HH00080": 300, "HH00099": 40, "HH00105": 100,
-        "CCDC0001": 1, "CCDC002": 1
+        "CCDC0001": 1, "CCDC002": 1, "HH00106": 60, "HH00107": 60, "HH00108": 60, "HH00109": 60, "HH00110": 60
     },
     
     isExcludedProduct: (ma_sp) => CONFIG.EXCLUDED_PRODUCTS.includes(ma_sp),
@@ -34,6 +34,9 @@ const CONFIG = {
     },
     sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms))
 };
+
+// MÃ XÁC THỰC YÊU CẦU
+const REQUIRED_ACCESS_CODE = 'ADMIN99';
 
 // ======================= CHUYỂN ĐỔI ĐƠN VỊ =======================
 const UnitConverter = {
@@ -243,7 +246,6 @@ const InventoryManager = {
 
 // ======================= XỬ LÝ API =======================
 const API = {
-    // Lấy danh sách mã phiếu chuyển kho chưa duyệt
     fetchUnconfirmedTransferIds: async (tu_ngay, den_ngay) => {
         const fmtTu = CONFIG.formatDate(tu_ngay);
         const fmtDen = CONFIG.formatDate(den_ngay);
@@ -292,7 +294,6 @@ const API = {
         return unconfirmedIds;
     },
     
-    // Lấy tất cả dữ liệu, loại bỏ các phiếu chưa duyệt
     fetchAll: async (tu_ngay, den_ngay, onProgress, excludedPhiếuIds = new Set()) => {
         let allData = [], page = 1, hasMore = true;
         const fmtTu = CONFIG.formatDate(tu_ngay), fmtDen = CONFIG.formatDate(den_ngay);
@@ -329,7 +330,6 @@ const API = {
             const data = await response.json();
             
             if (data.status && data.data && data.data.length) {
-                // Lọc bỏ các phiếu có mã nằm trong danh sách chưa duyệt
                 const filteredData = data.data.filter(record => {
                     return !excludedPhiếuIds.has(record.ma_phieu);
                 });
@@ -403,14 +403,63 @@ const UI = {
             progressBar: document.getElementById('progressBar'),
             tuNgay: document.getElementById('tu_ngay'),
             denNgay: document.getElementById('den_ngay'),
-            error: document.getElementById('error')
+            error: document.getElementById('error'),
+            authModal: document.getElementById('authModal'),
+            accessCode: document.getElementById('accessCode'),
+            submitAuthBtn: document.getElementById('submitAuthBtn'),
+            authError: document.getElementById('authError')
         };
         
         this.elements.btnOverview.onclick = () => this.switchTab('overview');
         this.elements.btnDetail.onclick = () => this.switchTab('detail');
         
+        this.initAuth();
+        
         Overview.init();
         Detail.init();
+        
+        // Mặc định vô hiệu hóa nút cho đến khi nhập đúng mã
+        this.elements.fetchBtn.disabled = true;
+    },
+    
+    initAuth: function() {
+        this.elements.submitAuthBtn.onclick = () => {
+            const code = this.elements.accessCode.value;
+            if (code && code.toUpperCase() === REQUIRED_ACCESS_CODE) {
+                // Đúng mã - đóng modal và kích hoạt nút
+                this.hideAuthModal();
+                this.elements.fetchBtn.disabled = false;
+                this.elements.authError.textContent = '';
+                this.elements.accessCode.value = '';
+            } else {
+                // Sai mã
+                this.elements.authError.textContent = '❌ Mã không đúng! Vui lòng thử lại.';
+                this.elements.accessCode.value = '';
+                this.elements.accessCode.focus();
+            }
+        };
+        
+        // Cho phép nhấn Enter để xác nhận
+        this.elements.accessCode.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.elements.submitAuthBtn.click();
+            }
+        });
+        
+        // Hiển thị modal ngay lập tức
+        this.showAuthModal();
+    },
+    
+    showAuthModal: function() {
+        if (this.elements.authModal) {
+            this.elements.authModal.classList.add('active');
+        }
+    },
+    
+    hideAuthModal: function() {
+        if (this.elements.authModal) {
+            this.elements.authModal.classList.remove('active');
+        }
     },
     
     switchTab: function(tab) {
@@ -488,12 +537,10 @@ async function fetchAndCalculate() {
         
         UI.updateProgress(3);
         
-        // Lấy danh sách mã phiếu chuyển kho chưa duyệt
         UI.updateProgress(4);
         const unconfirmedIds = await API.fetchUnconfirmedTransferIds(tu_ngay, den_ngay);
         UI.updateProgress(5);
         
-        // Lấy dữ liệu, loại bỏ các phiếu chưa duyệt
         const data = await API.fetchAll(tu_ngay, den_ngay, (p) => UI.updateProgress(p), unconfirmedIds);
         
         UI.updateProgress(90);
@@ -519,5 +566,4 @@ async function fetchAndCalculate() {
 document.addEventListener('DOMContentLoaded', function() {
     UI.init();
     UI.elements.fetchBtn.onclick = fetchAndCalculate;
-    InventoryManager.loadInitial();
 });
