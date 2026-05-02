@@ -28,7 +28,12 @@ const DON_GIA = {
     "HH00099": 690000,
     "HH00100": 910000,
     "HH00101": 432000,
-    "HH00105": 840000
+    "HH00105": 840000,
+    "HH00106": 210000,
+    "HH00107": 210000,
+    "HH00108": 210000,
+    "HH00109": 432000,
+    "HH00110": 432000,
 };
 const OPENING_STOCK_DATA = [
  {   "npp": "NPP Anh Minh HT",   "ma_sp": "HH00105",   "ten_sp": "Chân gà có xương bà Tuyết X2 60g (60gram*100 gói/thùng)",   "ma_dvt": "Thùng",   "so_luong": 131.9,   "thanh_tien": 110796000 },
