@@ -36,7 +36,7 @@ const CONFIG = {
 };
 
 // MÃ XÁC THỰC YÊU CẦU
-const REQUIRED_ACCESS_CODE = 'ADMIN99';
+const REQUIRED_ACCESS_CODE = 'ANCUNGBATUYET99';
 
 // ======================= CHUYỂN ĐỔI ĐƠN VỊ =======================
 const UnitConverter = {
