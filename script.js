@@ -1,3 +1,5 @@
+// ======================= script.js (sửa đổi) =======================
+
 // ======================= CẤU HÌNH =======================
 const CONFIG = {
     API_URL: 'https://openapi.mobiwork.vn/OpenAPI/V1/Inventory',
@@ -35,8 +37,18 @@ const CONFIG = {
     sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms))
 };
 
-// MÃ XÁC THỰC YÊU CẦU
-const REQUIRED_ACCESS_CODE = 'ANCUNGBATUYET99';
+// TÀI KHOẢN VÀ QUYỀN HẠN
+const USER_ACCOUNTS = {
+    'ANCUNGBATUYET99': { role: 'admin', region: null },        // Admin - toàn quyền
+    'KV1ADZ': { role: 'user', region: 'KV1' },                 // User KV1
+    'KV2ZAC': { role: 'user', region: 'KV2' },                 // User KV2
+    'KV3CCC': { role: 'user', region: 'KV3' },                 // User KV3
+    'KV4YXY': { role: 'user', region: 'KV4' },                 // User KV4
+    'KV5XXZ': { role: 'user', region: 'KV5' },                 // User KV5
+    'KV6XBC': { role: 'user', region: 'KV6' }                  // User KV6
+};
+
+let currentUser = null;
 
 // ======================= CHUYỂN ĐỔI ĐƠN VỊ =======================
 const UnitConverter = {
@@ -191,7 +203,7 @@ const InventoryManager = {
         this.nppImportDetailMap.clear();
     },
     
-    getSummary: function() {
+    getSummary: function(userRegion = null) {
         const items = [];
         const uniqueNPP = new Set();
         
@@ -199,6 +211,9 @@ const InventoryManager = {
             if (Math.abs(item.so_luong) > 0.001 && !CONFIG.isExcludedWarehouse(item.npp)) {
                 const region = getRegionByNPP(item.npp);
                 if (!region) continue;
+                
+                // Nếu user chỉ có quyền xem 1 khu vực, lọc theo khu vực đó
+                if (userRegion && region !== userRegion) continue;
                 
                 items.push(item);
                 uniqueNPP.add(item.npp);
@@ -410,44 +425,98 @@ const UI = {
             authError: document.getElementById('authError')
         };
         
-        this.elements.btnOverview.onclick = () => this.switchTab('overview');
-        this.elements.btnDetail.onclick = () => this.switchTab('detail');
-        
         this.initAuth();
         
         Overview.init();
         Detail.init();
-        
-        // Mặc định vô hiệu hóa nút cho đến khi nhập đúng mã
-        this.elements.fetchBtn.disabled = true;
     },
     
     initAuth: function() {
         this.elements.submitAuthBtn.onclick = () => {
             const code = this.elements.accessCode.value;
-            if (code && code.toUpperCase() === REQUIRED_ACCESS_CODE) {
-                // Đúng mã - đóng modal và kích hoạt nút
+            const userInfo = USER_ACCOUNTS[code];
+            
+            if (userInfo) {
+                currentUser = {
+                    code: code,
+                    role: userInfo.role,
+                    region: userInfo.region
+                };
+                
                 this.hideAuthModal();
                 this.elements.fetchBtn.disabled = false;
                 this.elements.authError.textContent = '';
                 this.elements.accessCode.value = '';
+                
+                // Cấu hình giao diện theo quyền
+                this.configureUIByUser();
             } else {
-                // Sai mã
                 this.elements.authError.textContent = '❌ Mã không đúng! Vui lòng thử lại.';
                 this.elements.accessCode.value = '';
                 this.elements.accessCode.focus();
             }
         };
         
-        // Cho phép nhấn Enter để xác nhận
         this.elements.accessCode.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.elements.submitAuthBtn.click();
             }
         });
         
-        // Hiển thị modal ngay lập tức
         this.showAuthModal();
+    },
+    
+    configureUIByUser: function() {
+        if (!currentUser) return;
+        
+        if (currentUser.role === 'admin') {
+            // Admin: hiển thị cả 2 tab
+            this.elements.btnOverview.style.display = 'inline-block';
+            this.elements.btnDetail.style.display = 'inline-block';
+            
+            // Hiển thị tất cả khu vực trong filter của Detail
+            const regionSelect = document.getElementById('regionSelect');
+            if (regionSelect) {
+                regionSelect.innerHTML = `
+                    <option value="">-- Tất cả khu vực --</option>
+                    <option value="KV1">KV1</option>
+                    <option value="KV2">KV2</option>
+                    <option value="KV3">KV3</option>
+                    <option value="KV4">KV4</option>
+                    <option value="KV5">KV5</option>
+                    <option value="KV6">KV6</option>
+                `;
+                regionSelect.disabled = false;
+            }
+        } else {
+            // User thường: ẩn tab Tổng quan, chỉ hiện Chi tiết
+            this.elements.btnOverview.style.display = 'none';
+            this.elements.btnDetail.style.display = 'inline-block';
+            
+            // Chuyển sang tab Chi tiết
+            if (this.elements.btnDetail.classList.contains('active')) {
+                this.switchTab('detail');
+            } else {
+                this.elements.btnDetail.click();
+            }
+            
+            // Cấu hình filter khu vực: chỉ hiển thị khu vực của user
+            const regionSelect = document.getElementById('regionSelect');
+            if (regionSelect) {
+                regionSelect.innerHTML = `
+                    <option value="${currentUser.region}">${currentUser.region}</option>
+                `;
+                regionSelect.value = currentUser.region;
+                regionSelect.disabled = true; // Không cho đổi khu vực
+            }
+            
+            // Kích hoạt sự kiện change cho region để load NPP trong khu vực
+            setTimeout(() => {
+                if (Detail.onRegionChange) {
+                    Detail.onRegionChange();
+                }
+            }, 100);
+        }
     },
     
     showAuthModal: function() {
@@ -492,7 +561,13 @@ const UI = {
         
         Overview.update(summary, topChickenNPP, topBimQuayNPP);
         Detail.update(summary.nppSummary);
-        this.switchTab('overview');
+        
+        // Nếu là user thường, luôn ở tab chi tiết
+        if (currentUser && currentUser.role !== 'admin') {
+            this.switchTab('detail');
+        } else {
+            this.switchTab('overview');
+        }
     },
     
     hideResults: function() {
@@ -536,7 +611,6 @@ async function fetchAndCalculate() {
         InventoryManager.loadInitial();
         
         UI.updateProgress(3);
-        
         UI.updateProgress(4);
         const unconfirmedIds = await API.fetchUnconfirmedTransferIds(tu_ngay, den_ngay);
         UI.updateProgress(5);
@@ -549,7 +623,9 @@ async function fetchAndCalculate() {
         UI.updateProgress(100);
         await CONFIG.sleep(300);
         
-        const summary = InventoryManager.getSummary();
+        // Lấy summary với filter theo khu vực của user (nếu có)
+        const userRegion = (currentUser && currentUser.role !== 'admin') ? currentUser.region : null;
+        const summary = InventoryManager.getSummary(userRegion);
         
         UI.displayResults(summary);
         

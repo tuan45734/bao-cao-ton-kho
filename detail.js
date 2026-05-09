@@ -6,6 +6,7 @@ const Detail = {
     categoryContainer: null,
     allNPPData: null,
     nppProductsMap: null,
+    currentUserRegion: null,  // Lưu khu vực của user hiện tại (nếu là user thường)
     
     init: function() {
         this.regionSelect = document.getElementById('regionSelect');
@@ -15,6 +16,11 @@ const Detail = {
         
         this.regionSelect.addEventListener('change', () => this.onRegionChange());
         this.nppSelect.addEventListener('change', () => this.onNPPChange());
+        
+        // Lấy thông tin user từ biến global currentUser (nếu có)
+        if (typeof currentUser !== 'undefined' && currentUser && currentUser.role !== 'admin') {
+            this.currentUserRegion = currentUser.region;
+        }
     },
     
     formatNumber: function(num) {
@@ -318,7 +324,12 @@ const Detail = {
     },
     
     onRegionChange: function() {
-        const region = this.regionSelect.value;
+        let region = this.regionSelect.value;
+        
+        // Nếu là user thường (có currentUserRegion), chỉ xem được khu vực của mình
+        if (this.currentUserRegion) {
+            region = this.currentUserRegion;
+        }
         
         if (!region) {
             this.nppSelect.innerHTML = '<option value="">-- Chọn khu vực trước --</option>';
@@ -387,20 +398,49 @@ const Detail = {
     update: function(nppSummary) {
         this.allNPPData = nppSummary;
         
-        // Reset các combobox
-        this.regionSelect.value = '';
-        this.nppSelect.innerHTML = '<option value="">-- Chọn khu vực trước --</option>';
-        this.nppSelect.disabled = true;
-        this.chartContainer.innerHTML = '';
-        this.categoryContainer.innerHTML = '';
+        // Nếu là user thường, tự động chọn khu vực của user và disable select
+        if (this.currentUserRegion) {
+            // Cập nhật giá trị select
+            this.regionSelect.value = this.currentUserRegion;
+            this.regionSelect.disabled = true;
+            
+            // Kích hoạt sự kiện change để load NPP
+            setTimeout(() => {
+                this.onRegionChange();
+            }, 50);
+        } else {
+            // Admin: reset combobox
+            this.regionSelect.value = '';
+            this.regionSelect.disabled = false;
+            this.nppSelect.innerHTML = '<option value="">-- Chọn khu vực trước --</option>';
+            this.nppSelect.disabled = true;
+            this.chartContainer.innerHTML = '';
+            this.categoryContainer.innerHTML = '';
+        }
     },
     
     clear: function() {
         this.allNPPData = null;
-        this.regionSelect.value = '';
-        this.nppSelect.innerHTML = '<option value="">-- Chọn khu vực trước --</option>';
-        this.nppSelect.disabled = true;
-        this.chartContainer.innerHTML = '';
-        this.categoryContainer.innerHTML = '';
+        
+        if (this.currentUserRegion) {
+            // User thường: giữ nguyên khu vực đã chọn
+            if (this.regionSelect) {
+                this.regionSelect.value = this.currentUserRegion;
+                this.regionSelect.disabled = true;
+            }
+            this.nppSelect.innerHTML = '<option value="">-- Chọn NPP --</option>';
+            this.nppSelect.disabled = false;
+            this.chartContainer.innerHTML = '';
+            this.categoryContainer.innerHTML = '';
+        } else {
+            // Admin: reset hoàn toàn
+            if (this.regionSelect) this.regionSelect.value = '';
+            if (this.nppSelect) {
+                this.nppSelect.innerHTML = '<option value="">-- Chọn khu vực trước --</option>';
+                this.nppSelect.disabled = true;
+            }
+            if (this.chartContainer) this.chartContainer.innerHTML = '';
+            if (this.categoryContainer) this.categoryContainer.innerHTML = '';
+        }
     }
 };
