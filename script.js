@@ -17,8 +17,8 @@ const CONFIG = {
         "HH00069": 120, "HH00065": 120, "HH00063": 120, "HH00067": 120,
         "HH00058": 120, "HH00057": 120, "HH00056": 120, "HH00059": 120,
         "HH00055": 120, "HH00019": 200, "HH00083": 200, "HH00077": 300,
-        "HH00079": 300, "HH00074": 300, "HH00078": 300, "HH00080": 300, "HH00099": 40, "HH00105": 100,
-        "CCDC0001": 1, "CCDC002": 1, "HH00106": 60, "HH00107": 60, "HH00108": 60, "HH00109": 60, "HH00110": 60
+        "HH00079": 300, "HH00074": 300, "HH00078": 300, "HH00080": 300, "HH00099": 30, "HH00105": 100,
+        "HH00106": 60, "HH00107": 60, "HH00108": 60, "HH00109": 60, "HH00110": 60,"HH00111": 90,"HH00112": 90
     },
     
     isExcludedProduct: (ma_sp) => CONFIG.EXCLUDED_PRODUCTS.includes(ma_sp),
@@ -429,6 +429,10 @@ const UI = {
         
         Overview.init();
         Detail.init();
+        
+        // Gắn sự kiện click cho các tab
+        this.elements.btnOverview.addEventListener('click', () => this.switchTab('overview'));
+        this.elements.btnDetail.addEventListener('click', () => this.switchTab('detail'));
     },
     
     initAuth: function() {
