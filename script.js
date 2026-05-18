@@ -39,7 +39,7 @@ const CONFIG = {
 
 // TÀI KHOẢN VÀ QUYỀN HẠN
 const USER_ACCOUNTS = {
-    'ANCUNGBATUYET99': { role: 'admin', region: null },        // Admin - toàn quyền
+    '99': { role: 'admin', region: null },        // Admin - toàn quyền
     'KV1ADZ': { role: 'user', region: 'KV1' },                 // User KV1
     'KV2ZAC': { role: 'user', region: 'KV2' },                 // User KV2
     'KV3CCC': { role: 'user', region: 'KV3' },                 // User KV3
