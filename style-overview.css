@@ -315,7 +315,7 @@
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    min-width: 280px;
+    min-width: 380px;
     transition: opacity 0.2s ease;
     opacity: 0;
     animation: tooltipFadeIn 0.2s ease;
@@ -341,12 +341,13 @@
 .custom-tooltip .tooltip-table {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .custom-tooltip .tooltip-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(110px, 1.4fr) minmax(90px, 0.8fr) minmax(110px, 1fr);
+    column-gap: 12px;
     padding: 5px 0;
     font-weight: 600;
     color: #aaa;
@@ -356,42 +357,40 @@
 }
 
 .custom-tooltip .tooltip-header span:first-child {
-    flex: 2;
     text-align: left;
 }
 
 .custom-tooltip .tooltip-header span:nth-child(2) {
-    flex: 1;
     text-align: right;
 }
 
 .custom-tooltip .tooltip-header span:last-child {
-    flex: 1;
     text-align: right;
 }
 
 .custom-tooltip .tooltip-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(110px, 1.4fr) minmax(90px, 0.8fr) minmax(110px, 1fr);
+    column-gap: 12px;
     padding: 4px 0;
     font-size: 12px;
+    align-items: baseline;
 }
 
 .custom-tooltip .tooltip-row span:first-child {
-    flex: 2;
     font-weight: 500;
     text-align: left;
 }
 
 .custom-tooltip .tooltip-row span:nth-child(2) {
-    flex: 1;
     text-align: right;
+    white-space: nowrap;
 }
 
 .custom-tooltip .tooltip-row span:last-child {
-    flex: 1;
     text-align: right;
     color: #4caf50;
+    white-space: nowrap;
 }
 
 .custom-tooltip .category-name {
@@ -400,7 +399,7 @@
 
 /* ==================== PRODUCT TOOLTIP - HIỂN THỊ TẤT CẢ SẢN PHẨM ==================== */
 .custom-tooltip .product-tooltip {
-    min-width: 700px;
+    min-width: 760px;
     max-width: 90vw;
    
     overflow: auto;

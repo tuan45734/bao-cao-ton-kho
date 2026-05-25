@@ -150,7 +150,7 @@ const Overview = {
         const filteredBimQuay = (this.currentTopBimQuayNPP || []).filter(item => allowedRegions.includes(getRegionByNPP(item.npp)));
 
         this.renderStats(filteredSummary.totalQuantity, filteredSummary.totalValue, filteredSummary.totalNPP);
-        this.renderChart(filteredSummary.regionSummary, filteredSummary.regionValueSummary, filteredSummary.regionProducts);
+        this.renderChart(filteredSummary.regionSummary, filteredSummary.regionValueSummary, filteredSummary.regionProducts, allowedRegions);
 
         const categorySummary = this.getCategorySummary(filteredSummary.nppSummary);
         this.renderCategoryChart(categorySummary);
@@ -591,10 +591,12 @@ const Overview = {
     return html;
 },
     
-    renderChart: function(regionSummary, regionValueSummary, regionProducts) {
+    renderChart: function(regionSummary, regionValueSummary, regionProducts, allowedRegions = null) {
         if (!this.chartElement) return;
         
-        const regions = ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6', 'KV7'];
+        const regions = allowedRegions && allowedRegions.length > 0
+            ? allowedRegions
+            : ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6', 'KV7'];
         const maxValue = Math.max(...Object.values(regionValueSummary), 1);
         
         let chartHtml = `
