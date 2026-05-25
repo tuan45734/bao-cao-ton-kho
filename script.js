@@ -45,7 +45,8 @@ const USER_ACCOUNTS = {
     'KV3CCC': { role: 'user', region: 'KV3' },                 // User KV3
     'KV4YXY': { role: 'user', region: 'KV4' },                 // User KV4
     'KV5XXZ': { role: 'user', region: 'KV5' },                 // User KV5
-    'KV6XBC': { role: 'user', region: 'KV6' }                  // User KV6
+    'KV6XBC': { role: 'user', region: 'KV6' },                 // User KV6
+    'KV7XBC': { role: 'user', region: 'KV7' }                  // User KV7
 };
 
 let currentUser = null;
@@ -479,7 +480,16 @@ const UI = {
             this.elements.btnDetail.style.display = 'inline-block';
             
             // Hiển thị tất cả khu vực trong filter của Detail
+            const regionGroupSelect = document.getElementById('regionGroupSelect');
             const regionSelect = document.getElementById('regionSelect');
+            if (regionGroupSelect) {
+                regionGroupSelect.innerHTML = `
+                    <option value="">-- Tất cả miền --</option>
+                    <option value="MB">Miền Bắc</option>
+                    <option value="MT">Miền Trung</option>
+                `;
+                regionGroupSelect.disabled = false;
+            }
             if (regionSelect) {
                 regionSelect.innerHTML = `
                     <option value="">-- Tất cả khu vực --</option>
@@ -489,6 +499,7 @@ const UI = {
                     <option value="KV4">KV4</option>
                     <option value="KV5">KV5</option>
                     <option value="KV6">KV6</option>
+                    <option value="KV7">KV7</option>
                 `;
                 regionSelect.disabled = false;
             }
@@ -505,7 +516,15 @@ const UI = {
             }
             
             // Cấu hình filter khu vực: chỉ hiển thị khu vực của user
+            const regionGroupSelect = document.getElementById('regionGroupSelect');
             const regionSelect = document.getElementById('regionSelect');
+            if (regionGroupSelect) {
+                regionGroupSelect.innerHTML = `
+                    <option value="${currentUser.region === 'KV7' ? 'MT' : 'MB'}">${currentUser.region === 'KV7' ? 'Miền Trung' : 'Miền Bắc'}</option>
+                `;
+                regionGroupSelect.value = currentUser.region === 'KV7' ? 'MT' : 'MB';
+                regionGroupSelect.disabled = true;
+            }
             if (regionSelect) {
                 regionSelect.innerHTML = `
                     <option value="${currentUser.region}">${currentUser.region}</option>

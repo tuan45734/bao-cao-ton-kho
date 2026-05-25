@@ -2010,7 +2010,10 @@ const NPP_BY_REGION = {
             'NPP Vũ Đức Nam'],
     'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 
             'NPP Mạnh Hà 2', 'NPP Minh Châu', 'NPP Minh Lộc', 'NPP Nhung Tùng', 'NPP Phương Hà', 
-            'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng']
+            'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng'],
+        'KV7': ['NPP Hiền Thuận', 'NPP Trung Nam', 'NPP Anh Viên', 'NPP Nam Khánh', 'NPP Thanh Trà', 
+            'NPP Tường Vy', 'NPP Thúy Diễm', 'NPP Dương Thiên Nhi', 'NPP Minh Huy', 'NPP Tâm Bảo Hân', 
+            'NPP NAKOA', 'NPP Hoàng Gia Bảo']
 };
 
 function getRegionByNPP(nppName) {

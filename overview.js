@@ -1,19 +1,165 @@
 // ======================= TAB TỔNG QUAN =======================
 const Overview = {
     statsElement: null,
+    filterElement: null,
+    regionGroupSelect: null,
+    regionSelect: null,
     chartElement: null,
     categoryChartElement: null,
     topNPPChartElement: null,
     bottomNPPChartElement: null,
     topImportCardsElement: null,
+    currentSummary: null,
+    currentTopChickenNPP: null,
+    currentTopBimQuayNPP: null,
     
     init: function() {
         this.statsElement = document.getElementById('statsOverview');
+        this.filterElement = document.getElementById('overviewFilters');
+        this.regionGroupSelect = document.getElementById('overviewRegionGroupSelect');
+        this.regionSelect = document.getElementById('overviewRegionSelect');
         this.chartElement = document.getElementById('chartContainer');
         this.categoryChartElement = document.getElementById('categoryChartContainer');
         this.topNPPChartElement = document.getElementById('topNPPChartContainer');
         this.bottomNPPChartElement = document.getElementById('bottomNPPChartContainer');
         this.topImportCardsElement = document.getElementById('topImportCardsContainer');
+
+        if (this.regionGroupSelect) {
+            this.regionGroupSelect.addEventListener('change', () => {
+                this.syncRegionOptions();
+                this.renderCurrentView();
+            });
+        }
+
+        if (this.regionSelect) {
+            this.regionSelect.addEventListener('change', () => this.renderCurrentView());
+        }
+    },
+
+    getRegionGroupMap: function() {
+        return {
+            'MB': ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6'],
+            'MT': ['KV7']
+        };
+    },
+
+    getRegionLabel: function(regionGroup) {
+        if (regionGroup === 'MB') return 'Miền Bắc';
+        if (regionGroup === 'MT') return 'Miền Trung';
+        return '';
+    },
+
+    getAvailableRegionGroups: function() {
+        return [
+            { value: '', label: '-- Tất cả miền --' },
+            { value: 'MB', label: 'Miền Bắc' },
+            { value: 'MT', label: 'Miền Trung' }
+        ];
+    },
+
+    getRegionsByGroup: function(regionGroup) {
+        const regionGroupMap = this.getRegionGroupMap();
+        return regionGroupMap[regionGroup] || [];
+    },
+
+    getCurrentRegionGroup: function() {
+        return this.regionGroupSelect ? this.regionGroupSelect.value : '';
+    },
+
+    getCurrentRegion: function() {
+        return this.regionSelect ? this.regionSelect.value : '';
+    },
+
+    syncRegionOptions: function() {
+        if (!this.regionSelect || !this.currentSummary) return;
+
+        const selectedGroup = this.getCurrentRegionGroup();
+        const currentRegion = this.getCurrentRegion();
+        const allowedRegions = selectedGroup ? this.getRegionsByGroup(selectedGroup) : ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6', 'KV7'];
+
+        let html = '<option value="">-- Tất cả khu vực --</option>';
+        for (const region of allowedRegions) {
+            html += `<option value="${region}">${region}</option>`;
+        }
+
+        this.regionSelect.innerHTML = html;
+        this.regionSelect.disabled = false;
+
+        if (currentRegion && allowedRegions.includes(currentRegion)) {
+            this.regionSelect.value = currentRegion;
+        } else {
+            this.regionSelect.value = '';
+        }
+    },
+
+    getFilteredRegions: function() {
+        const selectedGroup = this.getCurrentRegionGroup();
+        const selectedRegion = this.getCurrentRegion();
+
+        if (selectedRegion) return [selectedRegion];
+        if (selectedGroup) return this.getRegionsByGroup(selectedGroup);
+        return ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6', 'KV7'];
+    },
+
+    filterSummaryByRegions: function(summary, allowedRegions) {
+        const regionSet = new Set(allowedRegions);
+        const nppSummary = {};
+        const regionSummary = {};
+        const regionValueSummary = {};
+        const regionProducts = {};
+        const selectedNPPs = new Set();
+
+        for (const [nppName, data] of Object.entries(summary.nppSummary || {})) {
+            const region = getRegionByNPP(nppName);
+            if (!region || !regionSet.has(region)) continue;
+
+            nppSummary[nppName] = {
+                total_quantity: data.total_quantity,
+                total_value: data.total_value,
+                products: data.products
+            };
+
+            if (!regionSummary[region]) regionSummary[region] = 0;
+            if (!regionValueSummary[region]) regionValueSummary[region] = 0;
+            if (!regionProducts[region]) regionProducts[region] = {};
+
+            regionSummary[region] += data.total_quantity;
+            regionValueSummary[region] += data.total_value;
+            regionProducts[region][nppName] = data.products;
+            selectedNPPs.add(nppName);
+        }
+
+        return {
+            nppSummary,
+            regionSummary,
+            regionValueSummary,
+            regionProducts,
+            totalNPP: Object.keys(nppSummary).length,
+            totalQuantity: Object.values(nppSummary).reduce((sum, item) => sum + item.total_quantity, 0),
+            totalValue: Object.values(nppSummary).reduce((sum, item) => sum + item.total_value, 0),
+            selectedNPPs: Array.from(selectedNPPs)
+        };
+    },
+
+    renderCurrentView: function() {
+        if (!this.currentSummary) return;
+
+        const allowedRegions = this.getFilteredRegions();
+        const filteredSummary = this.filterSummaryByRegions(this.currentSummary, allowedRegions);
+        const filteredChicken = (this.currentTopChickenNPP || []).filter(item => allowedRegions.includes(getRegionByNPP(item.npp)));
+        const filteredBimQuay = (this.currentTopBimQuayNPP || []).filter(item => allowedRegions.includes(getRegionByNPP(item.npp)));
+
+        this.renderStats(filteredSummary.totalQuantity, filteredSummary.totalValue, filteredSummary.totalNPP);
+        this.renderChart(filteredSummary.regionSummary, filteredSummary.regionValueSummary, filteredSummary.regionProducts);
+
+        const categorySummary = this.getCategorySummary(filteredSummary.nppSummary);
+        this.renderCategoryChart(categorySummary);
+
+        this.renderTopNPPChart(filteredSummary.nppSummary);
+        this.renderBottomNPPChart(filteredSummary.nppSummary);
+        this.renderTopImportCards(filteredChicken, filteredBimQuay);
+
+        this.initTooltips();
     },
     
     formatNumber: function(num) {
@@ -448,7 +594,7 @@ const Overview = {
     renderChart: function(regionSummary, regionValueSummary, regionProducts) {
         if (!this.chartElement) return;
         
-        const regions = ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6'];
+        const regions = ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6', 'KV7'];
         const maxValue = Math.max(...Object.values(regionValueSummary), 1);
         
         let chartHtml = `
@@ -584,20 +730,24 @@ const Overview = {
     },
     
     update: function(summary, topChickenNPP, topBimQuayNPP) {
-        this.renderStats(summary.totalQuantity, summary.totalValue, summary.totalNPP);
-        this.renderChart(summary.regionSummary, summary.regionValueSummary, summary.regionProducts);
-        
-        const categorySummary = this.getCategorySummary(summary.nppSummary);
-        this.renderCategoryChart(categorySummary);
-        
-        this.renderTopNPPChart(summary.nppSummary);
-        this.renderBottomNPPChart(summary.nppSummary);
-        this.renderTopImportCards(topChickenNPP, topBimQuayNPP);
-        
-        this.initTooltips();
+        this.currentSummary = summary;
+        this.currentTopChickenNPP = topChickenNPP || [];
+        this.currentTopBimQuayNPP = topBimQuayNPP || [];
+
+        this.syncRegionOptions();
+        this.renderCurrentView();
     },
     
     clear: function() {
+        this.currentSummary = null;
+        this.currentTopChickenNPP = null;
+        this.currentTopBimQuayNPP = null;
+
+        if (this.regionGroupSelect) this.regionGroupSelect.value = '';
+        if (this.regionSelect) {
+            this.regionSelect.innerHTML = '<option value="">-- Chọn miền trước --</option>';
+            this.regionSelect.disabled = true;
+        }
         if (this.statsElement) this.statsElement.innerHTML = '';
         if (this.chartElement) this.chartElement.innerHTML = '';
         if (this.categoryChartElement) this.categoryChartElement.innerHTML = '';

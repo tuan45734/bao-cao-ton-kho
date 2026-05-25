@@ -1,5 +1,6 @@
 // ======================= TAB CHI TIẾT =======================
 const Detail = {
+    regionGroupSelect: null,
     regionSelect: null,
     nppSelect: null,
     chartContainer: null,
@@ -9,11 +10,13 @@ const Detail = {
     currentUserRegion: null,  // Lưu khu vực của user hiện tại (nếu là user thường)
     
     init: function() {
+        this.regionGroupSelect = document.getElementById('regionGroupSelect');
         this.regionSelect = document.getElementById('regionSelect');
         this.nppSelect = document.getElementById('nppSelect');
         this.chartContainer = document.getElementById('detailChartContainer');
         this.categoryContainer = document.getElementById('detailCategoryContainer');
         
+        this.regionGroupSelect.addEventListener('change', () => this.onRegionGroupChange());
         this.regionSelect.addEventListener('change', () => this.onRegionChange());
         this.nppSelect.addEventListener('change', () => this.onNPPChange());
         
@@ -73,6 +76,46 @@ const Detail = {
         }
         
         return Array.from(mergedMap.values()).sort((a, b) => a.ma_sp.localeCompare(b.ma_sp));
+    },
+
+    getRegionsByGroup: function(regionGroup) {
+        if (regionGroup === 'MB') return ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6'];
+        if (regionGroup === 'MT') return ['KV7'];
+        return ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6', 'KV7'];
+    },
+
+    getRegionGroupByRegion: function(region) {
+        if (['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6'].includes(region)) return 'MB';
+        if (region === 'KV7') return 'MT';
+        return '';
+    },
+
+    syncRegionOptions: function() {
+        if (!this.regionSelect) return;
+
+        const selectedGroup = this.regionGroupSelect ? this.regionGroupSelect.value : '';
+        const currentRegion = this.regionSelect.value;
+        const allowedRegions = this.getRegionsByGroup(selectedGroup);
+
+        let html = '<option value="">-- Tất cả khu vực --</option>';
+        for (const region of allowedRegions) {
+            html += `<option value="${region}">${region}</option>`;
+        }
+
+        this.regionSelect.innerHTML = html;
+
+        if (currentRegion && allowedRegions.includes(currentRegion)) {
+            this.regionSelect.value = currentRegion;
+        } else {
+            this.regionSelect.value = '';
+        }
+    },
+
+    onRegionGroupChange: function() {
+        if (this.currentUserRegion) return;
+
+        this.syncRegionOptions();
+        this.onRegionChange();
     },
     
     // Tạo tooltip cho biểu đồ NPP theo khu vực (CHỈ HIỂN THỊ NGÀNH HÀNG, không hiển thị sản phẩm chi tiết)
@@ -325,10 +368,20 @@ const Detail = {
     
     onRegionChange: function() {
         let region = this.regionSelect.value;
+        const selectedGroup = this.regionGroupSelect ? this.regionGroupSelect.value : '';
+        const allowedRegions = this.getRegionsByGroup(selectedGroup);
         
         // Nếu là user thường (có currentUserRegion), chỉ xem được khu vực của mình
         if (this.currentUserRegion) {
             region = this.currentUserRegion;
+        }
+
+        if (selectedGroup && !allowedRegions.includes(region) && !this.currentUserRegion) {
+            this.nppSelect.innerHTML = '<option value="">-- Chọn NPP --</option>';
+            this.nppSelect.disabled = true;
+            this.chartContainer.innerHTML = '';
+            this.categoryContainer.innerHTML = '';
+            return;
         }
         
         if (!region) {
@@ -400,7 +453,15 @@ const Detail = {
         
         // Nếu là user thường, tự động chọn khu vực của user và disable select
         if (this.currentUserRegion) {
+            const regionGroup = this.getRegionGroupByRegion(this.currentUserRegion);
+
+            if (this.regionGroupSelect) {
+                this.regionGroupSelect.value = regionGroup;
+                this.regionGroupSelect.disabled = true;
+            }
+
             // Cập nhật giá trị select
+            this.syncRegionOptions();
             this.regionSelect.value = this.currentUserRegion;
             this.regionSelect.disabled = true;
             
@@ -410,8 +471,13 @@ const Detail = {
             }, 50);
         } else {
             // Admin: reset combobox
+            if (this.regionGroupSelect) {
+                this.regionGroupSelect.value = '';
+                this.regionGroupSelect.disabled = false;
+            }
             this.regionSelect.value = '';
             this.regionSelect.disabled = false;
+            this.syncRegionOptions();
             this.nppSelect.innerHTML = '<option value="">-- Chọn khu vực trước --</option>';
             this.nppSelect.disabled = true;
             this.chartContainer.innerHTML = '';
@@ -424,6 +490,10 @@ const Detail = {
         
         if (this.currentUserRegion) {
             // User thường: giữ nguyên khu vực đã chọn
+            if (this.regionGroupSelect) {
+                this.regionGroupSelect.value = this.getRegionGroupByRegion(this.currentUserRegion);
+                this.regionGroupSelect.disabled = true;
+            }
             if (this.regionSelect) {
                 this.regionSelect.value = this.currentUserRegion;
                 this.regionSelect.disabled = true;
@@ -434,6 +504,10 @@ const Detail = {
             this.categoryContainer.innerHTML = '';
         } else {
             // Admin: reset hoàn toàn
+            if (this.regionGroupSelect) {
+                this.regionGroupSelect.value = '';
+                this.regionGroupSelect.disabled = false;
+            }
             if (this.regionSelect) this.regionSelect.value = '';
             if (this.nppSelect) {
                 this.nppSelect.innerHTML = '<option value="">-- Chọn khu vực trước --</option>';
