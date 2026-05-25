@@ -21,7 +21,7 @@ const Detail = {
         this.nppSelect.addEventListener('change', () => this.onNPPChange());
         
         // Lấy thông tin user từ biến global currentUser (nếu có)
-        if (typeof currentUser !== 'undefined' && currentUser && currentUser.role !== 'admin') {
+        if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'user') {
             this.currentUserRegion = currentUser.region;
         }
     },

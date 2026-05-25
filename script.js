@@ -46,7 +46,8 @@ const USER_ACCOUNTS = {
     'KV4YXY': { role: 'user', region: 'KV4' },                 // User KV4
     'KV5XXZ': { role: 'user', region: 'KV5' },                 // User KV5
     'KV6XBC': { role: 'user', region: 'KV6' },                 // User KV6
-    'KV7XBC': { role: 'user', region: 'KV7' }                  // User KV7
+    'KV7XBC': { role: 'user', region: 'KV7' },                 // User KV7
+    'KV7ZZA': { role: 'user', region: 'KV7' }                  // User KV7 (alias)
 };
 
 let currentUser = null;
@@ -503,7 +504,7 @@ const UI = {
                 `;
                 regionSelect.disabled = false;
             }
-        } else {
+        } else if (currentUser.role === 'user') {
             // User thường: ẩn tab Tổng quan, chỉ hiện Chi tiết
             this.elements.btnOverview.style.display = 'none';
             this.elements.btnDetail.style.display = 'inline-block';
@@ -586,7 +587,7 @@ const UI = {
         Detail.update(summary.nppSummary);
         
         // Nếu là user thường, luôn ở tab chi tiết
-        if (currentUser && currentUser.role !== 'admin') {
+        if (currentUser && currentUser.role === 'user') {
             this.switchTab('detail');
         } else {
             this.switchTab('overview');
@@ -647,7 +648,7 @@ async function fetchAndCalculate() {
         await CONFIG.sleep(300);
         
         // Lấy summary với filter theo khu vực của user (nếu có)
-        const userRegion = (currentUser && currentUser.role !== 'admin') ? currentUser.region : null;
+        const userRegion = (currentUser && currentUser.role === 'user') ? currentUser.region : null;
         const summary = InventoryManager.getSummary(userRegion);
         
         UI.displayResults(summary);
