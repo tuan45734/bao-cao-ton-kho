@@ -1,42 +1,28 @@
-const DON_GIA = {
-    "HH00015": 842000,
-    "HH00019": 766000,
-    "HH00029": 1387000,
-    "HH00033": 1387000,
-    "HH00055": 432000,
-    "HH00056": 432000,
-    "HH00057": 432000,
-    "HH00058": 432000,
-    "HH00059": 432000,
-    "HH00062": 432000,
-    "HH00063": 432000,
-    "HH00065": 432000,
-    "HH00067": 432000,
-    "HH00069": 432000,
-    "HH00071": 432000,
-    "HH00072": 432000,
-    "HH00073": 432000,
-    "HH00074": 432000,
-    "HH00075": 432000,
-    "HH00077": 432000,
-    "HH00078": 432000,
-    "HH00079": 432000,
-    "HH00080": 432000,
-    "HH00081": 432000,
-    "HH00082": 432000,
-    "HH00083": 766000,
-    "HH00099": 690000,
-    "HH00100": 910000,
-    "HH00101": 432000,
-    "HH00105": 840000,
-    "HH00106": 210000,
-    "HH00107": 210000,
-    "HH00108": 210000,
-    "HH00109": 432000,
-    "HH00110": 432000,
-     "HH00111": 288000,
-      "HH00112": 288000,
-};
+let _donGiaCache = null;
+let _hsqdCache = null;
+
+async function _initProductCache() {
+    try {
+        const response = await fetch('https://openapi.mobiwork.vn/OpenAPI/V1/Product?kieu_ngay=%20&page_size=100&page_number=1', {
+            headers: { 'Authorization': 'Basic NjlhZTZlNmM4YTY0NjVmNDFlNTNhZmI0OjFuYzFnc3J1N2p2Ym10eTdncGV5NWk=' }
+        });
+        const result = await response.json();
+        if (!result.status || !result.data) return;
+
+        const donGia = {};
+        const hsqd = {};
+        for (const item of result.data) {
+            if (item.gia_chan != null) donGia[item.ma_sp] = item.gia_chan;
+            if (item.hsqd != null) hsqd[item.ma_sp] = item.hsqd;
+        }
+        _donGiaCache = donGia;
+        _hsqdCache = hsqd;
+    } catch (e) {
+        console.error('Lỗi tải dữ liệu sản phẩm:', e);
+    }
+}
+
+_initProductCache();
 const OPENING_STOCK_DATA = [
  {   "npp": "NPP Anh Minh HT",   "ma_sp": "HH00105",   "ten_sp": "Chân gà có xương bà Tuyết X2 60g (60gram*100 gói/thùng)",   "ma_dvt": "Thùng",   "so_luong": 53.22,   "thanh_tien": 44704800 },
  {   "npp": "NPP Anh Minh HT",   "ma_sp": "HH00106",   "ten_sp": "Việt Quất hóa thạch",   "ma_dvt": "Thùng",   "so_luong": 50,   "thanh_tien": 10500000 },
@@ -1968,7 +1954,7 @@ const OPENING_STOCK_DATA = [
  {   "npp": "NPP Đức Oanh",   "ma_sp": "HH00080",   "ten_sp": "Snack Cột Điện (25gram*300 gói/thùng)",   "ma_dvt": "Thùng",   "so_luong": 21.3,   "thanh_tien": 9201600 }
 ];
 function calculateThanhTien(ma_sp, so_luong) {
-    const donGia = DON_GIA[ma_sp];
+    const donGia = _donGiaCache ? _donGiaCache[ma_sp] : null;
     if (donGia) {
         return so_luong * donGia;
     }
@@ -1993,34 +1979,51 @@ function normalizeNPP(nppName) {
 }
 
 // ======================= PHÂN LOẠI NPP THEO KHU VỰC =======================
-const NPP_BY_REGION = {
-    'KV1': ['NPP Bảo Lâm', 'NPP Công Giang', 'NPP Cường Thịnh', 'NPP Đức Nam Tiến', 'NPP Dũng Cúc', 
-            'NPP Lâm Hạ', 'NPP Long Liên', 'NPP Nguyên Vũ', 'NPP Thảo Nam', 'NPP Tuấn Huê', 
-            'NPP Tuấn Yến', 'NPP Vũ Tấm'],
-    'KV2': ['NPP Duy Anh',  'NPP Hùng Huệ', 'NPP Long Châm', 'NPP Ngọc Kiên', 
-            'NPP Ngọc Thêu', 'NPP Phong Hiền',  'NPP Phương Đông', 
-            'NPP Thành Lụa', 'NPP Tuấn Huyền'],
-    'KV3': ['NPP Bảo Cường','NPP Hoa Việt','NPP Phúc Thịnh', 'NPP Hikoji', 'NPP Long Hải', 'NPP Tân Hoa', 'NPP Tây Đô', 
-            'NPP Thắng Lợi', 'NPP Thành Hân', 'NPP Tiến Thịnh', 'NPP Văn Hoàn'],
-    'KV4': ['NPP Ánh Thu', 'NPP Đức Oanh', 'NPP Dương Minh', 'NPP Dũng Béo', 'NPP Hưng Thịnh', 
-            'NPP Ngọc Phúc', 'NPP Nguyễn Đình Hân', 'NPP Tân Thúy', 'NPP Thăng Hương', 
-            'NPP Thảo Thắng'],
-    'KV5': ['NPP Anh Đức 1 (Nghỉ)','NPP Đồng Lợi', 'NPP Hải Hằng', 'NPP Hiên Cường', 'NPP Hoàng Minh', 'NPP Oanh Định', 
-            'NPP Sơn Lâm', 'NPP Thái Hoà', 'NPP Thảo Xuân', 'NPP Tiên Lan (Nghỉ)','NPP Duy Khoa', 'NPP Tuấn Vân', 
-            'NPP Vũ Đức Nam'],
-    'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 
-            'NPP Mạnh Hà 2', 'NPP Minh Châu', 'NPP Minh Lộc', 'NPP Nhung Tùng', 'NPP Phương Hà', 
-            'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng'],
-        'KV7': ['NPP Hiền Thuận', 'NPP Trung Nam', 'NPP Anh Viên', 'NPP Nam Khánh', 'NPP Thanh Trà', 
-            'NPP Tường Vy', 'NPP Thúy Diễm', 'NPP Dương Thiên Nhi', 'NPP Minh Huy', 'NPP Tâm Bảo Hân', 
-            'NPP NAKOA', 'NPP Hoàng Gia Bảo']
-};
+let _nppToRegionCache = null;
+
+async function _initNppRegionCache() {
+    try {
+        const response = await fetch('https://openapi.mobiwork.vn/OpenAPI/V1/SaleGroup', {
+            headers: { 'Authorization': 'Basic NjlhZTZlNmM4YTY0NjVmNDFlNTNhZmI0OjFuYzFnc3J1N2p2Ym10eTdncGV5NWk=' }
+        });
+        const result = await response.json();
+        if (!result.status || !result.data) return;
+
+        const provinceMap = {};
+        for (const item of result.data) {
+            if (item.ma_nhom.startsWith('KV')) {
+                provinceMap[item.ma_nhom] = [];
+            }
+        }
+
+        for (const item of result.data) {
+            if (item.ma_nhom_cha && provinceMap[item.ma_nhom_cha]) {
+                provinceMap[item.ma_nhom_cha].push(item.ma_nhom);
+            }
+        }
+
+        const cache = {};
+        for (const item of result.data) {
+            if (item.loai_nhom === 'sale') {
+                for (const [region, provinces] of Object.entries(provinceMap)) {
+                    if (provinces.includes(item.ma_nhom_cha)) {
+                        cache[item.ma_nhom] = region;
+                        break;
+                    }
+                }
+            }
+        }
+        _nppToRegionCache = cache;
+    } catch (e) {
+        console.error('Lỗi tải danh sách NPP:', e);
+    }
+}
+
+setTimeout(_initNppRegionCache, 1000);
 
 function getRegionByNPP(nppName) {
-    for (const [region, npps] of Object.entries(NPP_BY_REGION)) {
-        if (npps.includes(nppName)) {
-            return region;
-        }
+    if (_nppToRegionCache) {
+        return _nppToRegionCache[nppName] || null;
     }
     return null;
 }

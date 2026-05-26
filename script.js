@@ -10,15 +10,11 @@ const CONFIG = {
     EXCLUDED_PRODUCTS: ['HH00101_T01_1', 'CCDC002','CCDC0001','HH00101_T1112','HH00071_T02'],
     EXCLUDED_WAREHOUSES: ['Kho chính'],
     
-    CONVERSION_RATES: {
-        "HH00029": 200, "HH00033": 200, "HH00015": 120, "HH00100": 40,
-        "HH00062": 60, "HH00073": 60, "HH00072": 60, "HH00075": 60,
-        "HH00082": 120, "HH00081": 120, "HH00071": 120, "HH00101": 120,
-        "HH00069": 120, "HH00065": 120, "HH00063": 120, "HH00067": 120,
-        "HH00058": 120, "HH00057": 120, "HH00056": 120, "HH00059": 120,
-        "HH00055": 120, "HH00019": 200, "HH00083": 200, "HH00077": 300,
-        "HH00079": 300, "HH00074": 300, "HH00078": 300, "HH00080": 300, "HH00099": 30, "HH00105": 100,
-        "HH00106": 60, "HH00107": 60, "HH00108": 60, "HH00109": 60, "HH00110": 60,"HH00111": 90,"HH00112": 90
+    getConversionRate: function(maSp) {
+        if (typeof _hsqdCache !== 'undefined' && _hsqdCache) {
+            return _hsqdCache[maSp] || null;
+        }
+        return null;
     },
     
     isExcludedProduct: (ma_sp) => CONFIG.EXCLUDED_PRODUCTS.includes(ma_sp),
@@ -56,7 +52,7 @@ let currentUser = null;
 const UnitConverter = {
     convertToBox: (maSp, quantity, unit) => {
         if (unit === 'Thùng') return quantity;
-        const rate = CONFIG.CONVERSION_RATES[maSp];
+        const rate = CONFIG.getConversionRate(maSp);
         return rate ? quantity / rate : quantity;
     },
     needsConversion: (unit) => unit !== 'Thùng'

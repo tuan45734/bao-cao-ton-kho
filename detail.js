@@ -42,7 +42,7 @@ const Detail = {
         if (lowerName.includes('chân gà')) {
             return 'Chân Gà';
         }
-        if (lowerName.includes('bim bim') || lowerName.includes('bim quẩy') || 
+        if (lowerName.includes('bim bim') || lowerName.includes('bim quẩy') || lowerName.includes('quẩy') ||
             lowerName.includes('đùi gà') || lowerName.includes('hũ bim') || 
             lowerName.includes('hũ đùi')) {
             return 'Bim Quẩy';
@@ -131,6 +131,9 @@ const Detail = {
         
         for (const product of nppProducts) {
             const category = this.getNganhHang(product.ten_sp);
+            if (!categorySummary[category]) {
+                categorySummary[category] = { quantity: 0, value: 0 };
+            }
             categorySummary[category].quantity += product.so_luong;
             categorySummary[category].value += product.thanh_tien;
         }
